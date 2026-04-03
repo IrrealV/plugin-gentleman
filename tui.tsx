@@ -227,22 +227,14 @@ const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
         } else if (idx >= (2 * totalLines) / 3) {
           color = darkGray   // Bottom shadow
         }
-        return <text fg={color}>{line}</text>
+        return <text fg={color}>{line.padEnd(61, " ")}</text>
       })}
       
-      {/* OpenCode branding — enlarged and prominent */}
-      <box flexDirection="column" alignItems="center" marginTop={1}>
-        <box flexDirection="row" gap={0}>
-          <text fg={props.theme.textMuted}>╔═══════════╗</text>
-        </box>
-        <box flexDirection="row" gap={0}>
-          <text fg={props.theme.textMuted}>║ </text>
-          <text fg={props.theme.primary} bold={true}>OpenCode</text>
-          <text fg={props.theme.textMuted}> ║</text>
-        </box>
-        <box flexDirection="row" gap={0}>
-          <text fg={props.theme.textMuted}>╚═══════════╝</text>
-        </box>
+      {/* OpenCode branding */}
+      <box flexDirection="row" gap={0} marginTop={1}>
+        <text fg={props.theme.textMuted} dimColor={true}>╭ </text>
+        <text fg={props.theme.primary} bold={true}> O p e n C o d e </text>
+        <text fg={props.theme.textMuted} dimColor={true}> ╮</text>
       </box>
       
       <text> </text>
@@ -378,8 +370,6 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
     return lines
   }
   
-  const faceLines = buildFace()
-  
   // Grayscale palette for TUI clarity
   const lightGray = "#C0C0C0"   // Light gray for highlights
   const midGray = "#808080"      // Mid gray for main body
@@ -389,24 +379,25 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
   return (
     <box flexDirection="column" alignItems="center">
       {/* Full Mustachi face with grayscale gradient + pink tongue */}
-      {faceLines.map((line, idx) => {
+      {buildFace().map((line, idx, arr) => {
         // Check if this is a tongue line
         const isTongue = line.startsWith("TONGUE:")
         const displayLine = isTongue ? line.substring(7) : line
+        const paddedLine = displayLine.padEnd(25, " ")
         
         if (isTongue) {
-          return <text fg={tongueColor}>{displayLine}</text>
+          return <text fg={tongueColor}>{paddedLine}</text>
         }
         
         // Apply grayscale gradient to eyes and mustache
-        const totalLines = faceLines.length
+        const totalLines = arr.length
         let color = midGray
         if (idx < totalLines / 3) {
           color = lightGray  // Top highlight
         } else if (idx >= (2 * totalLines) / 3) {
           color = darkGray   // Bottom shadow
         }
-        return <text fg={color}>{displayLine}</text>
+        return <text fg={color}>{paddedLine}</text>
       })}
       
       {/* Busy phrase if loading */}
