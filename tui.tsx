@@ -6,60 +6,41 @@ import { createSignal, onCleanup, createEffect } from "solid-js"
 
 const id = "gentleman"
 
-// Premium Mustachi ASCII art - full version for sidebar
+// Premium Mustachi ASCII art - compact version for sidebar (25 chars wide)
 // Base structure with eyes that will be replaced dynamically
 const mustachiNeutralBase = [
-  "            ████████████               ████████████",
-  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
-  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
-  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-  "            ████████████               ████████████",
+  "     █████       █████",
+  "   ██░░░░░██   ██░░░░░██",
+  "  ██░░███░░██ ██░░░░░░░██",
+  "  ██░░███░░██ ██░░░░░░░██",
+  "██ ██░░░░░██   ██░░░░░██ ██",
 ]
 
 // Squinted eyes version for busy state
 const mustachiSquintedBase = [
-  "            ████████████               ████████████",
-  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-  "         ██░░░████████░░░██         ██░░░░░░░░░░░░░░██",
-  "        ██░░████░░░░████░░██       ██░░░░░░░░░░░░░░░░██",
-  "        ██░░██░░░░░░░░██░░██       ██░░░░░░░░░░░░░░░░██",
-  "        ██░░░░░░░░░░░░░░░░██       ██░░░░░░░░░░░░░░░░██",
-  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
-  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-  "            ████████████               ████████████",
+  "     █████       █████",
+  "   ██░░░░░██   ██░░░░░██",
+  "  ██░░███░░██ ██░░░░░░░██",
+  "   █████████   █████████",
+  "██  █████         █████  ██",
 ]
 
-// Mustache section (shared by all states)
+// Mustache section (compact 25-char wide design)
 const mustachiMustacheSection = [
-  "               ████████                 ████████",
-  "             ████████████             ████████████",
-  "    ██      ████████████████       ████████████████      ██",
-  "   ████    ████████████████████ ████████████████████    ████",
-  "  ██████  ███████████████████████████████████████████  ██████",
-  "  ███████████████████████████████████████████████████████████",
-  "  ███████████████████████████████████████████████████████████",
-  "  ███████████████████████████████████████████████████████████",
-  "   █████████████████████████████████████████████████████████",
-  "    ███████████████████████████████████████████████████████",
-  "      ▓▓█████████████████████     █████████████████████▓▓",
-  "        ▓▓▓███████████████           ███████████████▓▓▓",
-  "           ▓▓▓█████████                 █████████▓▓▓",
-  "              ▓▓▓▓▓▓▓                     ▓▓▓▓▓▓▓",
+  "██████████         ████████",
+  "████████████     ██████████",
+  " █████████████████████████",
+  "  ▓██████████   ██████████▓",
+  "    ▓██████       ██████▓",
 ]
 
-// Tongue animation frames (progressive)
+// Tongue animation frames (progressive) - compact design
 const tongueFrames = [
   [],  // no tongue
-  ["                             ███████"],  // small tongue
-  ["                             ███████", "                              █████"],  // medium tongue
-  ["                             ███████", "                              █████", "                               ███"],  // full tongue
+  ["             ███", "              █"],  // tongue out
 ]
 
-// Mustache-only ASCII art for home logo (prominent and simple)
+// Mustache-only ASCII art for home logo (original massive solid block design)
 const mustachiMustacheOnly = [
   "",
   "               ████████                 ████████",
@@ -82,11 +63,12 @@ const mustachiMustacheOnly = [
 // Left pupil positions for look-around animation (progressive)
 // Modifies only the left eye (white sclera with dark pupil)
 // Right eye is monocle/glass and remains static
+// Pupil is on lines 2 and 3 (indices 2-3) of the 5-line eye array
 const leftPupilPositions = [
-  "████████",  // center (line 3 of eyes)
-  "██████  ",  // looking left
-  "  ██████",  // looking right
-  "████████",  // center again
+  "██░░███░░██",  // center (line 2 of eyes)
+  "██████░░░██",  // looking left
+  "██░░░██████",  // looking right
+  "██░░███░░██",  // center again
 ]
 
 // Blink animation frames (progressive) - affects both eyes
@@ -96,30 +78,22 @@ const blinkFrames = [
   // Half closed
   { 
     left: [
-      "            ████████████               ████████████",
-      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-      "         ██░░░░████░░░░░░██         ██░░░░░░░░░░░░░░██",
-      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
-      "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
-      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-      "            ████████████               ████████████",
+      "     █████       █████",
+      "   ██░░░░░██   ██░░░░░██",
+      "  ██░░███░░██ ██░░░░░░░██",
+      "   █████████   █████████",
+      "██  █████         █████  ██",
     ],
     squinted: mustachiSquintedBase  // squinted stays squinted during blink
   },
   // Fully closed
   {
     left: [
-      "            ████████████               ████████████",
-      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-      "         ██░░████████░░░░██         ██░░░░░░░░░░░░░░██",
-      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
-      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
-      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
-      "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
-      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
-      "            ████████████               ████████████",
+      "     █████       █████",
+      "   ██░░░░░██   ██░░░░░██",
+      "   █████████   █████████",
+      "   █████████   █████████",
+      "██  █████         █████  ██",
     ],
     squinted: mustachiSquintedBase
   },
@@ -235,31 +209,40 @@ const getProviders = (providers: ReadonlyArray<{ id: string; name: string }> | u
   return Array.from(names).sort().join(", ")
 }
 
-// Home logo: Mustache-only (simple and prominent)
+// Home logo: Mustache-only (simple and prominent) with grayscale gradient
 const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
-  const topColor = props.theme.accent || "#E0C15A"
-  const midColor = props.theme.primary || "#7FB4CA"
-  const bottomColor = props.theme.error || "#CB7C94"
+  // Grayscale palette for better TUI readability
+  const lightGray = "#C0C0C0"   // Light gray for highlights
+  const midGray = "#808080"      // Mid gray for main body
+  const darkGray = "#505050"     // Dark gray for shadows
   
   return (
     <box flexDirection="column" alignItems="center">
-      {/* Mustache-only with 3-tone gradient */}
+      {/* Mustache with grayscale gradient for depth */}
       {mustachiMustacheOnly.map((line, idx) => {
         const totalLines = mustachiMustacheOnly.length
-        let color = midColor
+        let color = midGray
         if (idx < totalLines / 3) {
-          color = topColor
+          color = lightGray  // Top highlight
         } else if (idx >= (2 * totalLines) / 3) {
-          color = bottomColor
+          color = darkGray   // Bottom shadow
         }
         return <text fg={color}>{line}</text>
       })}
       
-      {/* OpenCode branding */}
-      <box flexDirection="row" gap={0}>
-        <text fg={props.theme.textMuted} dimColor={true}>╭</text>
-        <text fg={props.theme.primary} dimColor={false}> OpenCode </text>
-        <text fg={props.theme.textMuted} dimColor={true}>╮</text>
+      {/* OpenCode branding — enlarged and prominent */}
+      <box flexDirection="column" alignItems="center" marginTop={1}>
+        <box flexDirection="row" gap={0}>
+          <text fg={props.theme.textMuted}>╔═══════════╗</text>
+        </box>
+        <box flexDirection="row" gap={0}>
+          <text fg={props.theme.textMuted}>║ </text>
+          <text fg={props.theme.primary} bold={true}>OpenCode</text>
+          <text fg={props.theme.textMuted}> ║</text>
+        </box>
+        <box flexDirection="row" gap={0}>
+          <text fg={props.theme.textMuted}>╚═══════════╝</text>
+        </box>
       </box>
       
       <text> </text>
@@ -267,7 +250,7 @@ const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
   )
 }
 
-// Sidebar: Full Mustachi face with progressive animations
+// Sidebar: Full Mustachi face with progressive animations (grayscale for clarity)
 const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: boolean }) => {
   const [pupilIndex, setPupilIndex] = createSignal(0)
   const [blinkFrame, setBlinkFrame] = createSignal(0)
@@ -328,17 +311,17 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
       return
     }
     
-    // Grow tongue progressively when entering busy state
+    // Grow tongue progressively when entering busy state (2 frames: hidden -> visible)
     let currentFrame = 0
     let tongueTimeoutId: NodeJS.Timeout | undefined
     const growTongue = () => {
       if (currentFrame < tongueFrames.length - 1) {
         currentFrame++
         setTongueFrame(currentFrame)
-        tongueTimeoutId = setTimeout(growTongue, 200)
       }
     }
-    growTongue()
+    // Show tongue immediately when busy
+    tongueTimeoutId = setTimeout(growTongue, 200)
     
     // Rotate busy phrases
     let phraseIdx = 0
@@ -371,12 +354,12 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
         : blinkFrames[blinkFrame()].left
     }
     
-    // Add eyes with pupil position (modify line 3 for left eye pupil)
+    // Add eyes with pupil position (modify line 2 for left eye pupil - index 2 in 5-line array)
     eyeBase.forEach((line, idx) => {
-      if (idx === 3 && !props.isBusy && pupilIndex() >= 0) {
-        // Replace pupil in left eye (center of line 3)
+      if (idx === 2 && !props.isBusy && pupilIndex() >= 0) {
+        // Replace pupil in left eye (positions 2-12 of the line for the 25-char compact design)
         const pupil = leftPupilPositions[pupilIndex()]
-        const modifiedLine = line.substring(0, 14) + pupil + line.substring(22)
+        const modifiedLine = line.substring(0, 2) + pupil + line.substring(13)
         lines.push(modifiedLine)
       } else {
         lines.push(line)
@@ -386,10 +369,10 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
     // Add mustache section
     mustachiMustacheSection.forEach(line => lines.push(line))
     
-    // Add tongue if busy (progressive frames)
+    // Add tongue if busy (progressive frames) - mark as tongue for coloring
     if (props.isBusy && tongueFrame() > 0) {
       const tongueLines = tongueFrames[tongueFrame()]
-      tongueLines.forEach(line => lines.push(line))
+      tongueLines.forEach(line => lines.push(`TONGUE:${line}`))
     }
     
     return lines
@@ -397,22 +380,33 @@ const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: 
   
   const faceLines = buildFace()
   
-  const topColor = props.theme.accent || "#E0C15A"
-  const midColor = props.theme.primary || "#7FB4CA"
-  const bottomColor = props.theme.error || "#CB7C94"
+  // Grayscale palette for TUI clarity
+  const lightGray = "#C0C0C0"   // Light gray for highlights
+  const midGray = "#808080"      // Mid gray for main body
+  const darkGray = "#505050"     // Dark gray for shadows
+  const tongueColor = "#FF4466"  // Pink/Red for tongue
   
   return (
     <box flexDirection="column" alignItems="center">
-      {/* Full Mustachi face with 3-tone gradient */}
+      {/* Full Mustachi face with grayscale gradient + pink tongue */}
       {faceLines.map((line, idx) => {
-        const totalLines = faceLines.length
-        let color = midColor
-        if (idx < totalLines / 3) {
-          color = topColor
-        } else if (idx >= (2 * totalLines) / 3) {
-          color = bottomColor
+        // Check if this is a tongue line
+        const isTongue = line.startsWith("TONGUE:")
+        const displayLine = isTongue ? line.substring(7) : line
+        
+        if (isTongue) {
+          return <text fg={tongueColor}>{displayLine}</text>
         }
-        return <text fg={color}>{line}</text>
+        
+        // Apply grayscale gradient to eyes and mustache
+        const totalLines = faceLines.length
+        let color = midGray
+        if (idx < totalLines / 3) {
+          color = lightGray  // Top highlight
+        } else if (idx >= (2 * totalLines) / 3) {
+          color = darkGray   // Bottom shadow
+        }
+        return <text fg={color}>{displayLine}</text>
       })}
       
       {/* Busy phrase if loading */}
