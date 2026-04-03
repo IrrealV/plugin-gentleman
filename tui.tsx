@@ -6,32 +6,123 @@ import { createSignal, onCleanup, createEffect } from "solid-js"
 
 const id = "gentleman"
 
-// Mustachi ASCII art - inspired by mustachi examples (eyes, mustache, optional tongue)
-// Base state: neutral look
-const mustachiBase = [
+// Premium Mustachi ASCII art - full version for sidebar
+// Base structure with eyes that will be replaced dynamically
+const mustachiNeutralBase = [
+  "            ████████████               ████████████",
+  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
+  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+  "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
+  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+  "            ████████████               ████████████",
+]
+
+// Squinted eyes version for busy state
+const mustachiSquintedBase = [
+  "            ████████████               ████████████",
+  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+  "         ██░░░████████░░░██         ██░░░░░░░░░░░░░░██",
+  "        ██░░████░░░░████░░██       ██░░░░░░░░░░░░░░░░██",
+  "        ██░░██░░░░░░░░██░░██       ██░░░░░░░░░░░░░░░░██",
+  "        ██░░░░░░░░░░░░░░░░██       ██░░░░░░░░░░░░░░░░██",
+  "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
+  "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+  "            ████████████               ████████████",
+]
+
+// Mustache section (shared by all states)
+const mustachiMustacheSection = [
+  "               ████████                 ████████",
+  "             ████████████             ████████████",
+  "    ██      ████████████████       ████████████████      ██",
+  "   ████    ████████████████████ ████████████████████    ████",
+  "  ██████  ███████████████████████████████████████████  ██████",
+  "  ███████████████████████████████████████████████████████████",
+  "  ███████████████████████████████████████████████████████████",
+  "  ███████████████████████████████████████████████████████████",
+  "   █████████████████████████████████████████████████████████",
+  "    ███████████████████████████████████████████████████████",
+  "      ▓▓█████████████████████     █████████████████████▓▓",
+  "        ▓▓▓███████████████           ███████████████▓▓▓",
+  "           ▓▓▓█████████                 █████████▓▓▓",
+  "              ▓▓▓▓▓▓▓                     ▓▓▓▓▓▓▓",
+]
+
+// Tongue animation frames (progressive)
+const tongueFrames = [
+  [],  // no tongue
+  ["                             ███████"],  // small tongue
+  ["                             ███████", "                              █████"],  // medium tongue
+  ["                             ███████", "                              █████", "                               ███"],  // full tongue
+]
+
+// Mustache-only ASCII art for home logo (prominent and simple)
+const mustachiMustacheOnly = [
   "",
-  "    ╭─────╮       ╭─────╮    ",
-  "   │ ● ● │       │ ○ ○ │    ",
-  "    ╰─────╯       ╰─────╯    ",
-  "       ╲           ╱         ",
-  "        ╲         ╱          ",
-  "   ╭─────═════════─────╮     ",
-  "  ╱   ╭───────────╮   ╲      ",
-  " ╱    │ ~~~~~~~~~ │    ╲     ",
-  "╱     ╰───────────╯     ╲    ",
-  "╲                       ╱    ",
-  " ╲                     ╱     ",
-  "  ╰───────────────────╯      ",
+  "               ████████                 ████████",
+  "             ████████████             ████████████",
+  "    ██      ████████████████       ████████████████      ██",
+  "   ████    ████████████████████ ████████████████████    ████",
+  "  ██████  ███████████████████████████████████████████  ██████",
+  "  ███████████████████████████████████████████████████████████",
+  "  ███████████████████████████████████████████████████████████",
+  "  ███████████████████████████████████████████████████████████",
+  "   █████████████████████████████████████████████████████████",
+  "    ███████████████████████████████████████████████████████",
+  "      ▓▓█████████████████████     █████████████████████▓▓",
+  "        ▓▓▓███████████████           ███████████████▓▓▓",
+  "           ▓▓▓█████████                 █████████▓▓▓",
+  "              ▓▓▓▓▓▓▓                     ▓▓▓▓▓▓▓",
   "",
 ]
 
-// Eye variations for subtle animation
-const eyeVariations = [
-  { left: "● ●", right: "○ ○" },  // neutral
-  { left: "◐ ●", right: "○ ○" },  // left eye looking left
-  { left: "● ◑", right: "○ ○" },  // left eye looking right
-  { left: "● ●", right: "◐ ○" },  // right eye looking left
-  { left: "● ●", right: "○ ◑" },  // right eye looking right
+// Left pupil positions for look-around animation (progressive)
+// Modifies only the left eye (white sclera with dark pupil)
+// Right eye is monocle/glass and remains static
+const leftPupilPositions = [
+  "████████",  // center (line 3 of eyes)
+  "██████  ",  // looking left
+  "  ██████",  // looking right
+  "████████",  // center again
+]
+
+// Blink animation frames (progressive) - affects both eyes
+const blinkFrames = [
+  // Open eyes (default state embedded in base arrays)
+  { left: mustachiNeutralBase, squinted: mustachiSquintedBase },
+  // Half closed
+  { 
+    left: [
+      "            ████████████               ████████████",
+      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+      "         ██░░░░████░░░░░░██         ██░░░░░░░░░░░░░░██",
+      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+      "        ██░░░░████████░░░░██       ██░░░░░░░░░░░░░░░░██",
+      "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
+      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+      "            ████████████               ████████████",
+    ],
+    squinted: mustachiSquintedBase  // squinted stays squinted during blink
+  },
+  // Fully closed
+  {
+    left: [
+      "            ████████████               ████████████",
+      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+      "         ██░░████████░░░░██         ██░░░░░░░░░░░░░░██",
+      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
+      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
+      "        ██░░████████████░░██       ██░░░░░░░░░░░░░░░░██",
+      "         ██░░░░░░░░░░░░░░██         ██░░░░░░░░░░░░░░██",
+      "          ██░░░░░░░░░░░░██           ██░░░░░░░░░░░░██",
+      "            ████████████               ████████████",
+    ],
+    squinted: mustachiSquintedBase
+  },
 ]
 
 // Busy/loading state with tongue and motivational phrases
@@ -144,73 +235,17 @@ const getProviders = (providers: ReadonlyArray<{ id: string; name: string }> | u
   return Array.from(names).sort().join(", ")
 }
 
-const Home = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: boolean }) => {
-  const [eyeIndex, setEyeIndex] = createSignal(0)
-  const [showTongue, setShowTongue] = createSignal(false)
-  const [busyPhrase, setBusyPhrase] = createSignal("")
-  
-  // Animation: subtle eye variation every 3-5 seconds
-  createEffect(() => {
-    if (!props.config.animations) return
-    
-    const interval = setInterval(() => {
-      // Randomly change eyes occasionally (20% chance)
-      if (Math.random() < 0.2) {
-        setEyeIndex((Math.floor(Math.random() * eyeVariations.length)))
-      } else {
-        setEyeIndex(0) // back to neutral
-      }
-    }, 4000) // check every 4 seconds
-    
-    onCleanup(() => clearInterval(interval))
-  })
-  
-  // Busy state animation: show tongue + rotate phrases
-  createEffect(() => {
-    if (!props.config.animations || !props.isBusy) {
-      setShowTongue(false)
-      setBusyPhrase("")
-      return
-    }
-    
-    setShowTongue(true)
-    
-    let phraseIdx = 0
-    setBusyPhrase(busyPhrases[phraseIdx])
-    
-    const interval = setInterval(() => {
-      phraseIdx = (phraseIdx + 1) % busyPhrases.length
-      setBusyPhrase(busyPhrases[phraseIdx])
-    }, 3000) // rotate every 3 seconds
-    
-    onCleanup(() => clearInterval(interval))
-  })
-  
-  // Build Mustachi with current eye state
-  const currentEyes = eyeVariations[eyeIndex()]
-  const mustachi = mustachiBase.map((line, idx) => {
-    // Replace eyes in line 2
-    if (idx === 2) {
-      return `   │ ${currentEyes.left} │       │ ${currentEyes.right} │    `
-    }
-    return line
-  })
-  
-  // Add tongue if busy
-  if (showTongue()) {
-    mustachi.push("         ╲ ● ╱              ")
-    mustachi.push("           v                ")
-  }
-  
+// Home logo: Mustache-only (simple and prominent)
+const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
   const topColor = props.theme.accent || "#E0C15A"
   const midColor = props.theme.primary || "#7FB4CA"
   const bottomColor = props.theme.error || "#CB7C94"
   
   return (
     <box flexDirection="column" alignItems="center">
-      {/* Mustachi with 3-tone gradient */}
-      {mustachi.map((line, idx) => {
-        const totalLines = mustachi.length
+      {/* Mustache-only with 3-tone gradient */}
+      {mustachiMustacheOnly.map((line, idx) => {
+        const totalLines = mustachiMustacheOnly.length
         let color = midColor
         if (idx < totalLines / 3) {
           color = topColor
@@ -226,6 +261,159 @@ const Home = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: boolean }) 
         <text fg={props.theme.primary} dimColor={false}> OpenCode </text>
         <text fg={props.theme.textMuted} dimColor={true}>╮</text>
       </box>
+      
+      <text> </text>
+    </box>
+  )
+}
+
+// Sidebar: Full Mustachi face with progressive animations
+const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: boolean }) => {
+  const [pupilIndex, setPupilIndex] = createSignal(0)
+  const [blinkFrame, setBlinkFrame] = createSignal(0)
+  const [tongueFrame, setTongueFrame] = createSignal(0)
+  const [busyPhrase, setBusyPhrase] = createSignal("")
+  
+  // Animation: pupil movement (look around) - low frequency, progressive
+  createEffect(() => {
+    if (!props.config.animations || props.isBusy) {
+      setPupilIndex(0)
+      return
+    }
+    
+    const interval = setInterval(() => {
+      // Cycle through pupil positions progressively
+      setPupilIndex((prev) => {
+        // 80% chance to stay at center, 20% to move
+        if (Math.random() < 0.8) return 0
+        return (prev + 1) % leftPupilPositions.length
+      })
+    }, 3000)
+    
+    onCleanup(() => clearInterval(interval))
+  })
+  
+  // Animation: blink - occasional, progressive
+  createEffect(() => {
+    if (!props.config.animations) return
+    
+    const blinkSequence = async () => {
+      // Open -> half -> closed -> half -> open
+      setBlinkFrame(0)
+      await new Promise(r => setTimeout(r, 150))
+      setBlinkFrame(1)
+      await new Promise(r => setTimeout(r, 100))
+      setBlinkFrame(2)
+      await new Promise(r => setTimeout(r, 100))
+      setBlinkFrame(1)
+      await new Promise(r => setTimeout(r, 100))
+      setBlinkFrame(0)
+    }
+    
+    const interval = setInterval(() => {
+      // Blink occasionally (15% chance every 4s)
+      if (Math.random() < 0.15) {
+        blinkSequence()
+      }
+    }, 4000)
+    
+    onCleanup(() => clearInterval(interval))
+  })
+  
+  // Busy state animation: tongue grows progressively + rotate phrases
+  createEffect(() => {
+    if (!props.config.animations || !props.isBusy) {
+      setTongueFrame(0)
+      setBusyPhrase("")
+      return
+    }
+    
+    // Grow tongue progressively when entering busy state
+    let currentFrame = 0
+    let tongueTimeoutId: NodeJS.Timeout | undefined
+    const growTongue = () => {
+      if (currentFrame < tongueFrames.length - 1) {
+        currentFrame++
+        setTongueFrame(currentFrame)
+        tongueTimeoutId = setTimeout(growTongue, 200)
+      }
+    }
+    growTongue()
+    
+    // Rotate busy phrases
+    let phraseIdx = 0
+    setBusyPhrase(busyPhrases[phraseIdx])
+    
+    const interval = setInterval(() => {
+      phraseIdx = (phraseIdx + 1) % busyPhrases.length
+      setBusyPhrase(busyPhrases[phraseIdx])
+    }, 3000)
+    
+    onCleanup(() => {
+      clearInterval(interval)
+      if (tongueTimeoutId !== undefined) {
+        clearTimeout(tongueTimeoutId)
+      }
+    })
+  })
+  
+  // Build the complete Mustachi face
+  const buildFace = () => {
+    const lines: string[] = []
+    
+    // Select eye base based on busy state
+    let eyeBase = props.isBusy ? mustachiSquintedBase : mustachiNeutralBase
+    
+    // Apply blink animation if active
+    if (blinkFrame() > 0 && blinkFrame() < blinkFrames.length) {
+      eyeBase = props.isBusy 
+        ? blinkFrames[blinkFrame()].squinted 
+        : blinkFrames[blinkFrame()].left
+    }
+    
+    // Add eyes with pupil position (modify line 3 for left eye pupil)
+    eyeBase.forEach((line, idx) => {
+      if (idx === 3 && !props.isBusy && pupilIndex() >= 0) {
+        // Replace pupil in left eye (center of line 3)
+        const pupil = leftPupilPositions[pupilIndex()]
+        const modifiedLine = line.substring(0, 14) + pupil + line.substring(22)
+        lines.push(modifiedLine)
+      } else {
+        lines.push(line)
+      }
+    })
+    
+    // Add mustache section
+    mustachiMustacheSection.forEach(line => lines.push(line))
+    
+    // Add tongue if busy (progressive frames)
+    if (props.isBusy && tongueFrame() > 0) {
+      const tongueLines = tongueFrames[tongueFrame()]
+      tongueLines.forEach(line => lines.push(line))
+    }
+    
+    return lines
+  }
+  
+  const faceLines = buildFace()
+  
+  const topColor = props.theme.accent || "#E0C15A"
+  const midColor = props.theme.primary || "#7FB4CA"
+  const bottomColor = props.theme.error || "#CB7C94"
+  
+  return (
+    <box flexDirection="column" alignItems="center">
+      {/* Full Mustachi face with 3-tone gradient */}
+      {faceLines.map((line, idx) => {
+        const totalLines = faceLines.length
+        let color = midColor
+        if (idx < totalLines / 3) {
+          color = topColor
+        } else if (idx >= (2 * totalLines) / 3) {
+          color = bottomColor
+        }
+        return <text fg={color}>{line}</text>
+      })}
       
       {/* Busy phrase if loading */}
       {busyPhrase() && (
@@ -254,7 +442,7 @@ const DetectedEnv = (props: {
     <box flexDirection="row" gap={1}>
       <text fg={props.theme.textMuted}>Detected:</text>
       {os && <text fg={props.theme.text}>{os}</text>}
-      {os && providers && <text fg={props.theme.textMuted}>•</text>}
+      {os && providers && <text fg={props.theme.textMuted}>·</text>}
       {providers && <text fg={props.theme.text}>{providers}</text>}
     </box>
   )
@@ -288,10 +476,13 @@ const tui: TuiPlugin = async (api, options) => {
   api.slots.register({
     slots: {
       home_logo(ctx) {
-        return <Home theme={ctx.theme.current} config={value()} isBusy={isBusy()} />
+        return <HomeLogo theme={ctx.theme.current} />
       },
-      home_prompt_after(ctx) {
+      home_bottom(ctx) {
         return <DetectedEnv theme={ctx.theme.current} providers={api.state.provider} config={value()} />
+      },
+      sidebar_content(ctx) {
+        return <SidebarMustachi theme={ctx.theme.current} config={value()} isBusy={isBusy()} />
       },
     },
   })
