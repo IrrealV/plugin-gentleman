@@ -1,8 +1,8 @@
 # Plugin Gentleman
 
-> **Mustachi** — An animated ASCII mascot bringing personality to your OpenCode terminal.
+> **For the Gentleman Programming community** — Bringing Mustachi, our beloved mascot, into your OpenCode terminal.
 
-An OpenCode TUI plugin that adds visual flair and environment awareness to your coding sessions:
+An OpenCode TUI plugin crafted for the Gentleman Programming community. Mustachi, the official mascot of Gentleman Programming, now accompanies you through your coding sessions with visual flair and environment awareness:
 
 - 🎭 **Prominent ASCII mustache** on the home screen
 - 👤 **Full Mustachi face** with eyes in the sidebar
@@ -91,7 +91,9 @@ opencode plugin ./plugin-gentleman-<version>.tgz --global
 
 ### The Mustachi Mascot
 
-An ASCII character with personality:
+**Mustachi** is the official mascot of the Gentleman Programming community — not something invented just for this plugin, but a character beloved by the community and now integrated into your coding environment.
+
+The ASCII representation features:
 - **Eyes** that occasionally look in different directions *(sidebar only)*
 - **Mustache** rendered in theme colors *(both home and sidebar)*
 - **Tongue** that appears during busy/loading states *(sidebar only)*
