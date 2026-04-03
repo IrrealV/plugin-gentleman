@@ -9,8 +9,8 @@
 export const eyeNeutralCenter = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars
+  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils center
+  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils center
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
@@ -33,31 +33,31 @@ export const eyeNeutralDown = [
 export const eyeNeutralLeft = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars
-  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars
+  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars - pupils left
+  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars - pupils left
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralRight = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars
-  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars
+  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars - pupils right
+  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars - pupils right
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralUpLeft = [
   "     █████       █████     ",  // 27 chars
   "   ███████░██  ██░░░░░██   ",  // 27 chars - up-left diagonal
-  "  ████████░██ ██░░░░░░░██  ",  // 27 chars
+  "  ████████░██ ██░░░░░░░██  ",  // 27 chars - up-left diagonal
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralUpRight = [
   "     █████       █████     ",  // 27 chars
-  "   ██░░░░░██   ██░██████   ",  // 27 chars - up-right diagonal
-  "  ██░░░░░░░██ ██░████████  ",  // 27 chars
+  "   ██░███████  ██░░░░░██   ",  // 27 chars - up-right diagonal
+  "  ██░████████ ██░░░░░░░██  ",  // 27 chars - up-right diagonal
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
@@ -67,7 +67,7 @@ export const eyeNeutralDownLeft = [
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "  ███████░░██ ██░░░░░░░██  ",  // 27 chars - down-left diagonal
-  "██ ████████░█   ██░░░░░██ ██",  // 27 chars
+  "██ ████████░█   ██░░░░░██ ██",  // 27 chars - down-left diagonal
 ]
 
 export const eyeNeutralDownRight = [
@@ -75,7 +75,7 @@ export const eyeNeutralDownRight = [
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "  ██░░░███████ ██░░░░░░░██  ",  // 27 chars - down-right diagonal
-  "██ ██░░░░░██   █████████ ██",  // 27 chars
+  "██ ██░████████  ██░░░░░██ ██",  // 27 chars - down-right diagonal
 ]
 
 // Squinted eyes version for busy/expressive state
@@ -90,7 +90,7 @@ export const eyeSquinted = [
 // Blink frames - half closed (upper eyelid descending from top)
 export const eyeBlinkHalf = [
   "     █████       █████     ",  // 27 chars - monocle border top unchanged
-  "   ██████████  ██████████  ",  // 27 chars - upper eyelid descends halfway
+  "   █████████   ██████████  ",  // 27 chars - upper eyelid descends halfway
   "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
   "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars - bottom unchanged
@@ -99,19 +99,19 @@ export const eyeBlinkHalf = [
 // Blink frames - fully closed (upper eyelid fully descended)
 export const eyeBlinkClosed = [
   "     █████       █████     ",  // 27 chars - monocle border top unchanged
-  "   ██████████  ██████████  ",  // 27 chars - upper eyelid down
-  "   ██████████  ██████████  ",  // 27 chars - eyes fully closed
+  "   █████████   ██████████  ",  // 27 chars - upper eyelid down
+  "   █████████   ██████████  ",  // 27 chars - eyes fully closed
   "   █████████   █████████   ",  // 27 chars - bottom transition
   "██  █████         █████  ██",  // 27 chars - bottom unchanged
 ]
 
 // Mustache section (all lines padded to 27 chars for alignment)
 export const mustachiMustacheSection = [
-  "██████████         █████████",  // 27 chars
-  "████████████     ███████████",  // 27 chars
-  " ██████████████████████████ ",  // 27 chars
-  "  ▓██████████   █████████▓",  // 27 chars
-  "    ▓██████       ██████▓  ",  // 27 chars
+  "████████████   ████████████",  // 27 chars - perfectly symmetric
+  "███████████████████████████",  // 27 chars - perfectly symmetric
+  " █████████████████████████ ",  // 27 chars - perfectly symmetric
+  "  ▓█████████████████████▓  ",  // 27 chars - perfectly symmetric
+  "    ▓█████████████████▓    ",  // 27 chars - perfectly symmetric
 ]
 
 // Tongue animation frames (progressive) - compact design

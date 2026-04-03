@@ -54,9 +54,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
   const [pupilIndex, setPupilIndex] = createSignal(0)
   const [blinkFrame, setBlinkFrame] = createSignal(0)
   const [tongueFrame, setTongueFrame] = createSignal(0)
-  const [busyPhrases1, setBusyPhrases1] = createSignal("")
-  const [busyPhrases2, setBusyPhrases2] = createSignal("")
-  const [busyPhrases3, setBusyPhrases3] = createSignal("")
+  const [busyPhrase, setBusyPhrase] = createSignal("")
   const [expressiveCycle, setExpressiveCycle] = createSignal(false)
 
   // Animation: pupil movement (look around) - random transitions, not a sequence
@@ -109,14 +107,12 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     onCleanup(() => clearInterval(interval))
   })
 
-  // Busy/expressive state animation: tongue + 2-3 random phrases
+  // Busy/expressive state animation: tongue + single rotating phrase
   // If isBusy is reliably reactive, use it; otherwise demonstrate expressiveness periodically
   createEffect(() => {
     if (!props.config.animations) {
       setTongueFrame(0)
-      setBusyPhrases1("")
-      setBusyPhrases2("")
-      setBusyPhrases3("")
+      setBusyPhrase("")
       setExpressiveCycle(false)
       return
     }
@@ -125,9 +121,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
 
     if (!shouldShowExpression) {
       setTongueFrame(0)
-      setBusyPhrases1("")
-      setBusyPhrases2("")
-      setBusyPhrases3("")
+      setBusyPhrase("")
       return
     }
 
@@ -142,29 +136,16 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     }
     tongueTimeoutId = setTimeout(growTongue, 200)
 
-    // Pick 2-3 random phrases from the expanded library
-    const pickRandomPhrases = () => {
-      const shuffled = [...busyPhrases].sort(() => Math.random() - 0.5)
-      const count = 2 + Math.floor(Math.random() * 2)  // 2 or 3 phrases
-      return shuffled.slice(0, count)
+    // Pick a random phrase and rotate through the library
+    const pickRandomPhrase = () => {
+      const randomIndex = Math.floor(Math.random() * busyPhrases.length)
+      return busyPhrases[randomIndex]
     }
 
-    let phraseSet = pickRandomPhrases()
-    let phraseIdx = 0
-    setBusyPhrases1(phraseSet[0] || "")
-    setBusyPhrases2(phraseSet[1] || "")
-    setBusyPhrases3(phraseSet[2] || "")
+    setBusyPhrase(pickRandomPhrase())
 
     const interval = setInterval(() => {
-      phraseIdx++
-      if (phraseIdx >= phraseSet.length) {
-        // Refresh the phrase set
-        phraseSet = pickRandomPhrases()
-        phraseIdx = 0
-      }
-      setBusyPhrases1(phraseSet[0] || "")
-      setBusyPhrases2(phraseSet[1] || "")
-      setBusyPhrases3(phraseSet[2] || "")
+      setBusyPhrase(pickRandomPhrase())
     }, 3000)
 
     onCleanup(() => {
@@ -254,15 +235,9 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
         return <text fg={color}>{paddedLine}</text>
       })}
 
-      {/* Display 2-3 busy phrases if loading */}
-      {busyPhrases1() && (
-        <text fg={props.theme.warning}>{busyPhrases1()}</text>
-      )}
-      {busyPhrases2() && (
-        <text fg={props.theme.warning}>{busyPhrases2()}</text>
-      )}
-      {busyPhrases3() && (
-        <text fg={props.theme.warning}>{busyPhrases3()}</text>
+      {/* Display single busy phrase if loading */}
+      {busyPhrase() && (
+        <text fg={props.theme.warning}>{busyPhrase()}</text>
       )}
 
       <text> </text>

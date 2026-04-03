@@ -38,4 +38,21 @@ export const busyPhrases = [
   "Tranquilo, todo bajo control...",
   "Un segundo de concentración...",
   "Mirá cómo se hace esto...",
+  
+  // Dev jokes (Argentina + Spain friendly)
+  "¿Qué le dice un bit a otro? Nos vemos en el bus",
+  "Hay 10 tipos de personas: las que entienden binario y las que no",
+  "¿Por qué los programadores confunden Halloween con Navidad? Porque Oct 31 = Dec 25",
+  "Mi código no tiene bugs, desarrolla características inesperadas",
+  "Un SQL entra a un bar, ve dos tablas y pregunta: ¿Puedo unirme?",
+  "¿Cuál es el animal favorito de un programador? El bug",
+  "No es un bug, es una funcionalidad no documentada",
+  "Hay dos cosas difíciles en programación: naming y cache invalidation",
+  "¿Qué hace un programador en la playa? Hace surf... por la web",
+  "Código que funciona en mi máquina™",
+  "99 little bugs in the code, 99 bugs to fix... take one down, patch it around, 127 little bugs in the code",
+  "¿Por qué los programadores prefieren el modo oscuro? Porque la luz atrae bugs",
+  "Debugging: ser el detective en una novela de crimen donde también sos el asesino",
+  "¡Todo compila! (pero no hace lo que debería)",
+  "Si depurar es quitar bugs, programar debe ser ponerlos",
 ]
