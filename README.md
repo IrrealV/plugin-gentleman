@@ -98,7 +98,7 @@ The ASCII representation features:
 - **Eyes** that blink and look in 8 directions (center, up, down, left, right, and 4 diagonals) *(sidebar only)*
 - **Mustache** rendered in grayscale gradient on home screen, semantic zone colors in sidebar
 - **Tongue** that appears during busy states or periodic expressive cycles *(sidebar only)*
-- **Motivational phrases** in Rioplatense Spanish style — 2-3 random phrases rotating every 3s *(sidebar only)*
+- **Motivational phrases** in Rioplatense Spanish style — single random phrase rotating every 3s *(sidebar only)*
 
 **Example phrases during busy states:**
 - *"Ponete las pilas, hermano..."*
@@ -124,9 +124,9 @@ The ASCII representation features:
 - Returns to center frequently for natural feel
 
 **Busy/Expressive State** *(when `animations: true`)*
-- Tongue appears progressively when OpenCode is processing
+- Tongue appears when OpenCode is processing
 - Eyes squint during expressive state
-- 2-3 random motivational phrases rotating every 3 seconds (36+ phrase library)
+- Single motivational phrase rotating every 3 seconds (36+ phrase library)
 - Active during detected busy states OR periodic expressive cycles
 
 **Expressive Cycle Fallback** *(when `animations: true`)*
@@ -388,7 +388,7 @@ The plugin is organized into focused modules for easy customization:
 **Adding new content:**
 
 - **Motivational phrases:** Edit `phrases.ts` — add new phrases to the `busyPhrases` array (currently 36+ phrases)
-- **ASCII art frames:** Edit `ascii-frames.ts` — modify eye positions (9 variants), blink frames (3 stages), mustache designs, or tongue frames (3 growth stages)
+- **ASCII art frames:** Edit `ascii-frames.ts` — modify eye positions (9 variants), blink frames (3 stages), mustache designs, or tongue states (binary on/off)
 - **UI logic:** Edit `components.tsx` — adjust animation timings, add new effects, or tweak component layout
 - **Configuration:** Edit `config.ts` — add new config options with type-safe defaults
 - **Detection logic:** Edit `detection.ts` — add new OS detection patterns or provider mappings
@@ -404,17 +404,17 @@ The plugin is organized into focused modules for easy customization:
 **Animation timing customization:**
 
 All animation intervals are in `components.tsx`:
-- **Look-around interval:** Line 79 — currently 3000ms (3s)
-- **Blink interval:** Line 107 — currently 2000ms with 35% chance (~5-6s average)
-- **Blink frame timing:** Lines 91-98 — currently 80-100ms per frame progression
-- **Phrase rotation:** Line 168 — currently 3000ms (3s) during expressive state
-- **Expressive cycle timing:** Lines 193-198 — first cycle at 30-45s, then every 45-60s
-- **Expressive cycle duration:** Line 189 — currently 8000ms (8s)
+- **Look-around interval:** Currently 3000ms (3s)
+- **Blink interval:** Currently 2000ms with 35% chance (~5-6s average)
+- **Blink frame timing:** Currently 80-100ms per frame progression
+- **Phrase rotation:** Currently 3000ms (3s) during expressive state
+- **Expressive cycle timing:** First cycle at 30-45s, then every 45-60s
+- **Expressive cycle duration:** Currently 8000ms (8s)
 
 **Color customization:**
 
 - **Zone colors (sidebar):** Edit `zoneColors` object in `ascii-frames.ts` (monocle, eyes, mustache, tongue)
-- **Home grayscale gradient:** Edit `HomeLogo` component in `components.tsx` (lines 22-24)
+- **Home grayscale gradient:** Edit `HomeLogo` component in `components.tsx` (top/middle/bottom color values)
 - **Theme colors:** Edit `gentleman.json` for the full color palette
 
 ---

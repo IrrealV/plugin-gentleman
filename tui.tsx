@@ -19,20 +19,35 @@ const tui: TuiPlugin = async (api, options) => {
   const [value] = createSignal(boot)
   const [isBusy, setIsBusy] = createSignal(false)
 
-  await api.theme.install("./gentleman.json")
-  if (value().set_theme) {
-    api.theme.set(value().theme)
+  // Theme setup - wrapped in try-catch to avoid breaking plugin bootstrap
+  try {
+    await api.theme.install("./gentleman.json")
+    if (value().set_theme) {
+      api.theme.set(value().theme)
+    }
+  } catch (error) {
+    // Theme installation failed - log but continue with slot registration
+    // Plugin will still render with default theme
+    console.error("[plugin-gentleman] Theme setup failed:", error)
   }
 
   // Detect busy state if API exposes it
-  // This is a best-effort detection - OpenCode TUI may or may not expose this
+  // Note: Best-effort detection - OpenCode TUI may not expose session.running
+  // If unavailable, isBusy remains false and expressive cycle fallback handles animations
   createEffect(() => {
     try {
-      // Check if there's a running agent or session state
-      const hasRunningSession = api.state?.session?.running
-      setIsBusy(!!hasRunningSession)
+      // Attempt to reactively track running state if API supports it
+      // This may or may not work depending on OpenCode version
+      if (api.state?.session?.running !== undefined) {
+        setIsBusy(!!api.state.session.running)
+      } else {
+        // API doesn't expose running state - degrade gracefully
+        // Expressive cycle fallback in components.tsx will demonstrate animations
+        setIsBusy(false)
+      }
     } catch {
-      // If API doesn't expose this, animations will just use idle state
+      // If API doesn't expose this at all, stay in idle state
+      // Periodic expressive cycles ensure animations are still visible
       setIsBusy(false)
     }
   })

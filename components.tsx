@@ -161,11 +161,13 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
   createEffect(() => {
     if (!props.config.animations || props.isBusy) return
 
+    let cycleEndTimeout: NodeJS.Timeout | undefined
+
     const triggerExpressiveCycle = () => {
       setExpressiveCycle(true)
 
       // End expressive cycle after 8 seconds
-      setTimeout(() => {
+      cycleEndTimeout = setTimeout(() => {
         setExpressiveCycle(false)
       }, 8000)
     }
@@ -181,6 +183,11 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     onCleanup(() => {
       clearTimeout(firstTimeout)
       clearInterval(interval)
+      if (cycleEndTimeout !== undefined) {
+        clearTimeout(cycleEndTimeout)
+      }
+      // Explicitly reset expressive cycle state to prevent sticking
+      setExpressiveCycle(false)
     })
   })
 

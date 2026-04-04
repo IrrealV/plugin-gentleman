@@ -9,15 +9,15 @@
 export const eyeNeutralCenter = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils center
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils center
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil center
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil center
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralUp = [
   "     █████       █████     ",  // 27 chars
-  "   ██████░██   ██░░░░░██   ",  // 27 chars - pupils up
-  "  ██░█████░██ ██░░░░░░░██  ",  // 27 chars - pupils up
+  "   ██░░   ██   ██░░░░░██   ",  // 27 chars - hollow pupil up
+  "  ██░░░  ░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil up
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
@@ -26,38 +26,38 @@ export const eyeNeutralDown = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils down
-  "██ ██████░░██   ██░░░░░██ ██",  // 27 chars - pupils down
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil down
+  "██ ██░░  ░██   ██░░░░░██ ██",  // 27 chars - hollow pupil down
 ]
 
 export const eyeNeutralLeft = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars - pupils left
-  "  ██████░░░██ ██░░░░░░░██  ",  // 27 chars - pupils left
+  "  ██   ░░░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil left
+  "  ██   ░░░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil left
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralRight = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars - pupils right
-  "  ██░░░██████ ██░░░░░░░██  ",  // 27 chars - pupils right
+  "  ██░░░░░  ██ ██░░░░░░░██  ",  // 27 chars - hollow pupil right
+  "  ██░░░░░  ██ ██░░░░░░░██  ",  // 27 chars - hollow pupil right
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralUpLeft = [
   "     █████       █████     ",  // 27 chars
-  "   ███████░██  ██░░░░░██   ",  // 27 chars - up-left diagonal
-  "  ████████░██ ██░░░░░░░██  ",  // 27 chars - up-left diagonal
+  "   ██   ░░██   ██░░░░░██   ",  // 27 chars - hollow pupil up-left
+  "  ██  ░░░░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil up-left
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
 
 export const eyeNeutralUpRight = [
   "     █████       █████     ",  // 27 chars
-  "   ██░███████  ██░░░░░██   ",  // 27 chars - up-right diagonal
-  "  ██░████████ ██░░░░░░░██  ",  // 27 chars - up-right diagonal
+  "   ██░░░░  ██  ██░░░░░██   ",  // 27 chars - hollow pupil up-right
+  "  ██░░░░░  ██ ██░░░░░░░██  ",  // 27 chars - hollow pupil up-right
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
 ]
@@ -66,23 +66,23 @@ export const eyeNeutralDownLeft = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
-  "  ███████░░██ ██░░░░░░░██  ",  // 27 chars - down-left diagonal
-  "██ ████████░█   ██░░░░░██ ██",  // 27 chars - down-left diagonal
+  "  ██  ░░░░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil down-left
+  "██ ██ ░░░░██   ██░░░░░██ ██",  // 27 chars - hollow pupil down-left
 ]
 
 export const eyeNeutralDownRight = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
-  "  ██░░░███████ ██░░░░░░░██  ",  // 27 chars - down-right diagonal
-  "██ ██░████████  ██░░░░░██ ██",  // 27 chars - down-right diagonal
+  "  ██░░░░░  ██ ██░░░░░░░██  ",  // 27 chars - hollow pupil down-right
+  "██ ██░░░░ ██   ██░░░░░██ ██",  // 27 chars - hollow pupil down-right
 ]
 
 // Squinted eyes version for busy/expressive state
 export const eyeSquinted = [
   "     █████       █████     ",  // 27 chars
   "   ██░░░░░██   ██░░░░░██   ",  // 27 chars
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars
   "   █████████   █████████   ",  // 27 chars
   "██  █████         █████  ██",  // 27 chars
 ]
@@ -91,8 +91,8 @@ export const eyeSquinted = [
 export const eyeBlinkHalf = [
   "     █████       █████     ",  // 27 chars - monocle border top unchanged
   "   █████████   ██████████  ",  // 27 chars - upper eyelid descends halfway
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
-  "  ██░░███░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
+  "  ██░░   ░░██ ██░░░░░░░██  ",  // 27 chars - pupils still visible
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars - bottom unchanged
 ]
 
