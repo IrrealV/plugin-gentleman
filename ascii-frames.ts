@@ -117,7 +117,7 @@ export const mustachiMustacheSection = [
 // Tongue animation frames (progressive) - compact design
 export const tongueFrames = [
   [],  // no tongue
-  ["             ███", "              █"],  // tongue out
+  ["            ███", "             █"],  // tongue out
 ]
 
 // Mustache-only ASCII art for home logo (original massive solid block design)
