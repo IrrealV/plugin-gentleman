@@ -1,5 +1,10 @@
 # Plugin Gentleman
 
+<p align="center">
+  <img src="./public/images/Mostacho.png" alt="Mostacho home preview" width="48%" />
+  <img src="./public/images/Mustachi.png" alt="Mustachi sidebar preview" width="48%" />
+</p>
+
 > **For the Gentleman Programming community** — Bringing Mustachi, our beloved mascot, into your OpenCode terminal.
 
 An OpenCode TUI plugin crafted for the Gentleman Programming community. Mustachi, the official mascot of Gentleman Programming, now accompanies you through your coding sessions with visual flair and environment awareness:
