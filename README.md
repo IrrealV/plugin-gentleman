@@ -2,6 +2,9 @@
 
 <p align="center">
   <img src="./public/images/Mostacho.png" alt="Mostacho home preview" width="48%" />
+</p>
+
+<p align="center">
   <img src="./public/images/Mustachi.png" alt="Mustachi sidebar preview" width="48%" />
 </p>
 
