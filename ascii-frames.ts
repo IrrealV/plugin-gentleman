@@ -107,11 +107,11 @@ export const eyeBlinkClosed = [
 
 // Mustache section (all lines padded to 27 chars for alignment)
 export const mustachiMustacheSection = [
-  "███████████     ███████████",  // 27 chars - perfectly symmetric
   "████████████   ████████████",  // 27 chars - perfectly symmetric
+  "█████████████ █████████████",  // 27 chars - perfectly symmetric
   " █████████████████████████ ",  // 27 chars - perfectly symmetric
-  "  ▓██████████ ██████████▓  ",  // 27 chars - perfectly symmetric
-  "    ▓▓▓▓▓▓▓▓   ▓▓▓▓▓▓▓▓    ",  // 27 chars - perfectly symmetric
+  "  ▓█████████   █████████▓  ",  // 27 chars - perfectly symmetric
+  "    ▓▓▓▓▓▓▓     ▓▓▓▓▓▓▓    ",  // 27 chars - perfectly symmetric
 ]
 
 // Tongue animation frames (progressive) - compact design
