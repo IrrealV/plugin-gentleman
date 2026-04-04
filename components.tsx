@@ -74,7 +74,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
         const randomDir = 1 + Math.floor(Math.random() * (pupilPositionFrames.length - 1))
         setPupilIndex(randomDir)
       }
-    }, 3000)
+    }, 800)  // TEST MODE: faster for demo (was 3000)
 
     onCleanup(() => clearInterval(interval))
   })
@@ -99,10 +99,11 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     const interval = setInterval(() => {
       // Blink more frequently to feel alive (~every 5-6 seconds)
       // 35% chance every 2s = average 5.7s between blinks
-      if (Math.random() < 0.35) {
+      // TEST MODE: 60% chance every 800ms = blink ~every 1.3s for demo
+      if (Math.random() < 0.6) {
         blinkSequence()
       }
-    }, 2000)
+    }, 800)  // TEST MODE: faster for demo (was 2000)
 
     onCleanup(() => clearInterval(interval))
   })
@@ -172,13 +173,14 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
       }, 8000)
     }
 
-    // First cycle after 30-45s, then every 45-60s
-    const firstDelay = 30000 + Math.random() * 15000
+    // TEST MODE: First cycle after 5-8s, then every 12-15s for demo
+    // (Production: first after 30-45s, then every 45-60s)
+    const firstDelay = 5000 + Math.random() * 3000
     const firstTimeout = setTimeout(triggerExpressiveCycle, firstDelay)
 
     const interval = setInterval(() => {
       triggerExpressiveCycle()
-    }, 45000 + Math.random() * 15000)
+    }, 12000 + Math.random() * 3000)
 
     onCleanup(() => {
       clearTimeout(firstTimeout)
