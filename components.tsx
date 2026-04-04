@@ -136,7 +136,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     }
     tongueTimeoutId = setTimeout(growTongue, 200)
 
-    // Pick a random phrase and rotate through the library
+    // Pick a single random phrase for this expressive cycle/state
     const pickRandomPhrase = () => {
       const randomIndex = Math.floor(Math.random() * busyPhrases.length)
       return busyPhrases[randomIndex]
@@ -144,12 +144,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
 
     setBusyPhrase(pickRandomPhrase())
 
-    const interval = setInterval(() => {
-      setBusyPhrase(pickRandomPhrase())
-    }, 3000)
-
     onCleanup(() => {
-      clearInterval(interval)
       if (tongueTimeoutId !== undefined) {
         clearTimeout(tongueTimeoutId)
       }
@@ -242,7 +237,7 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
         return <text fg={color}>{paddedLine}</text>
       })}
 
-      {/* Display single busy phrase if loading */}
+      {/* Display a single busy phrase for the current expressive cycle */}
       {busyPhrase() && (
         <text fg={props.theme.warning}>{busyPhrase()}</text>
       )}

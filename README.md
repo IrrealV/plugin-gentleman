@@ -98,7 +98,7 @@ The ASCII representation features:
 - **Eyes** that blink and look in 8 directions (center, up, down, left, right, and 4 diagonals) *(sidebar only)*
 - **Mustache** rendered in grayscale gradient on home screen, semantic zone colors in sidebar
 - **Tongue** that appears during busy states or periodic expressive cycles *(sidebar only)*
-- **Motivational phrases** in Rioplatense Spanish style — single random phrase rotating every 3s *(sidebar only)*
+- **Motivational phrases** in Rioplatense Spanish style — one random phrase per expressive cycle *(sidebar only)*
 
 **Example phrases during busy states:**
 - *"Ponete las pilas, hermano..."*
@@ -126,7 +126,7 @@ The ASCII representation features:
 **Busy/Expressive State** *(when `animations: true`)*
 - Tongue appears when OpenCode is processing
 - Eyes squint during expressive state
-- Single motivational phrase rotating every 3 seconds (36+ phrase library)
+- A single motivational phrase is chosen for each expressive cycle or busy state (36+ phrase library)
 - Active during detected busy states OR periodic expressive cycles
 
 **Expressive Cycle Fallback** *(when `animations: true`)*
@@ -407,7 +407,7 @@ All animation intervals are in `components.tsx`:
 - **Look-around interval:** Currently 3000ms (3s)
 - **Blink interval:** Currently 2000ms with 35% chance (~5-6s average)
 - **Blink frame timing:** Currently 80-100ms per frame progression
-- **Phrase rotation:** Currently 3000ms (3s) during expressive state
+- **Phrase selection:** One random phrase per expressive cycle or busy state
 - **Expressive cycle timing:** First cycle at 30-45s, then every 45-60s
 - **Expressive cycle duration:** Currently 8000ms (8s)
 

@@ -48,7 +48,7 @@ export const eyeNeutralRight = [
 
 export const eyeNeutralUpLeft = [
   "     █████       █████     ",  // 27 chars
-  "   ██  ░░██   ██░░░░░██   ",  // 27 chars - hollow pupil up-left
+  "   ██  ░░██   ███░░░░██   ",  // 27 chars - hollow pupil up-left
   "  ██   ░░░░██ ██░░░░░░░██  ",  // 27 chars - hollow pupil up-left
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
@@ -56,7 +56,7 @@ export const eyeNeutralUpLeft = [
 
 export const eyeNeutralUpRight = [
   "     ██████      █████     ",  // 27 chars
-  "   ██░░░  ██  ██░░░░░██   ",  // 27 chars - hollow pupil up-right
+  "   ██░░░  ██  ███░░░░██   ",  // 27 chars - hollow pupil up-right
   "  ██░░░░   ██ ██░░░░░░░██  ",  // 27 chars - hollow pupil up-right
   "  ██░░░░░░░██ ██░░░░░░░██  ",  // 27 chars
   "██ ██░░░░░██   ██░░░░░██ ██",  // 27 chars
