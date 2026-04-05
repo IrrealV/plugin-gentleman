@@ -61,7 +61,19 @@ const tui: TuiPlugin = async (api, options) => {
         return <DetectedEnv theme={ctx.theme.current} providers={api.state.provider} config={value()} />
       },
       sidebar_content(ctx) {
-        return <SidebarMustachi theme={ctx.theme.current} config={value()} isBusy={isBusy()} />
+        // Extract sessionID from ctx.value parameter
+        const sessionID = ctx.value?.sessionID
+        
+        return (
+          <SidebarMustachi 
+            theme={ctx.theme.current} 
+            config={value()} 
+            isBusy={isBusy()}
+            branch={api.state.vcs?.branch}
+            getMessages={() => sessionID ? api.state.session.messages(sessionID) : []}
+            contextLimit={1_000_000}
+          />
+        )
       },
     },
   })

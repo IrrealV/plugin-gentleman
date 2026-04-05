@@ -16,32 +16,152 @@ import {
 } from "./ascii-frames"
 import { busyPhrases } from "./phrases"
 
+export type SemanticZone = "monocle" | "eyes" | "mustache" | "tongue" | "unknown"
+
+export function getZoneColor(zone: SemanticZone | string, theme?: TuiThemeCurrent): string {
+  switch (zone) {
+    case "monocle":
+      return theme?.accent || zoneColors.monocle
+    case "eyes":
+      return theme?.primary || zoneColors.eyes
+    case "mustache":
+      return theme?.secondary || zoneColors.mustache
+    case "tongue":
+      return theme?.warning || zoneColors.tongue
+    default:
+      return theme?.textMuted || zoneColors.mustache
+  }
+}
+
+const toNumber = (value: unknown): number => {
+  if (typeof value !== "number") return 0
+  if (!Number.isFinite(value)) return 0
+  return value
+}
+
+const formatTokens = (tokens: number): string => {
+  const value = Math.max(0, toNumber(tokens))
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return `${Math.round(value)}`
+}
+
+const formatCost = (cost: number): string => {
+  const value = Math.max(0, toNumber(cost))
+  return `$${value.toFixed(2)}`
+}
+
+const getPct = (value: number, total: number): number => {
+  const safeValue = Math.max(0, toNumber(value))
+  const safeTotal = Math.max(0, toNumber(total))
+  if (!safeTotal) return 0
+  return Math.min(100, Math.round((safeValue / safeTotal) * 100))
+}
+
+const getMessageRole = (message: any): string => {
+  return (
+    message?.role ??
+    message?.message?.role ??
+    message?.author?.role ??
+    ""
+  )
+}
+
+const getTokenUsage = (message: any): any => {
+  return message?.tokenUsage ?? message?.usage ?? message?.tokens ?? message?.token_usage ?? {}
+}
+
+const hasTokenData = (message: any): boolean => {
+  const usage = getTokenUsage(message)
+  return (
+    typeof message?.tokens === "number" ||
+    typeof message?.total_tokens === "number" ||
+    typeof usage?.total === "number" ||
+    typeof usage?.total_tokens === "number" ||
+    typeof usage?.input === "number" ||
+    typeof usage?.input_tokens === "number" ||
+    typeof usage?.prompt_tokens === "number" ||
+    typeof usage?.output === "number" ||
+    typeof usage?.output_tokens === "number" ||
+    typeof usage?.completion_tokens === "number"
+  )
+}
+
+const getContextTokens = (message: any): number => {
+  const usage = getTokenUsage(message)
+  const direct = toNumber(message?.tokens)
+  if (direct > 0) return direct
+
+  const total = toNumber(usage?.total || usage?.total_tokens || message?.total_tokens)
+  if (total > 0) return total
+
+  const input = toNumber(usage?.input || usage?.input_tokens || usage?.prompt_tokens)
+  const output = toNumber(usage?.output || usage?.output_tokens || usage?.completion_tokens)
+  return Math.max(0, input + output)
+}
+
+const getMessageCost = (message: any): number => {
+  const usage = getTokenUsage(message)
+  return Math.max(
+    0,
+    toNumber(
+      message?.cost_usd ??
+      message?.cost ??
+      message?.total_cost ??
+      usage?.cost ??
+      usage?.cost_usd,
+    ),
+  )
+}
+
+const ProgressBar = (props: {
+  theme?: TuiThemeCurrent
+  totalTokens: number
+  totalCost: number
+  contextLimit?: number
+}) => {
+  const safeLimit = Math.max(0, toNumber(props.contextLimit))
+  const usagePct = getPct(props.totalTokens, safeLimit)
+  const barWidth = 18
+  const filled = Math.round((usagePct / 100) * barWidth)
+  const bar = `${"█".repeat(filled)}${"▒".repeat(Math.max(0, barWidth - filled))}`
+
+  return (
+    <box flexDirection="column" alignItems="center" marginTop={1}>
+      <text fg={props.theme?.textMuted ?? zoneColors.mustache}>Tokens: {formatTokens(props.totalTokens)}</text>
+      <text fg={props.theme?.accent ?? zoneColors.monocle}>Usage: {usagePct}% {bar}</text>
+      <text fg={props.theme?.textMuted ?? zoneColors.mustache}>Cost: {formatCost(props.totalCost)}</text>
+    </box>
+  )
+}
+
 // Home logo: Mustache-only (simple and prominent) with grayscale gradient
 export const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
-  // Grayscale palette for better TUI readability
-  const lightGray = "#C0C0C0"   // Light gray for highlights
-  const midGray = "#808080"      // Mid gray for main body
-  const darkGray = "#505050"     // Dark gray for shadows
+  const topTone = getZoneColor("monocle", props.theme)
+  const midTone = getZoneColor("eyes", props.theme)
+  const bottomTone = getZoneColor("mustache", props.theme)
+  const mutedBranding = props.theme?.textMuted ?? "#888888"
+  const primaryBranding = props.theme?.primary ?? "#FFFFFF"
 
   return (
     <box flexDirection="column" alignItems="center">
-      {/* Mustache with grayscale gradient for depth */}
+      {/* Mustache with theme-reactive gradient for depth */}
       {mustachiMustacheOnly.map((line, idx) => {
         const totalLines = mustachiMustacheOnly.length
-        let color = midGray
+        let color = midTone
         if (idx < totalLines / 3) {
-          color = lightGray  // Top highlight
+          color = topTone  // Top highlight
         } else if (idx >= (2 * totalLines) / 3) {
-          color = darkGray   // Bottom shadow
+          color = bottomTone   // Bottom shadow
         }
         return <text fg={color}>{line.padEnd(61, " ")}</text>
       })}
 
       {/* OpenCode branding */}
       <box flexDirection="row" gap={0} marginTop={1}>
-        <text fg={props.theme.textMuted} dimColor={true}>╭ </text>
-        <text fg={props.theme.primary} bold={true}> O p e n C o d e </text>
-        <text fg={props.theme.textMuted} dimColor={true}> ╮</text>
+        <text fg={mutedBranding} dimColor={true}>╭ </text>
+        <text fg={primaryBranding} bold={true}> O p e n C o d e </text>
+        <text fg={mutedBranding} dimColor={true}> ╮</text>
       </box>
 
       <text> </text>
@@ -50,7 +170,14 @@ export const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
 }
 
 // Sidebar: Full Mustachi face with progressive animations (semantic zone colors)
-export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; isBusy?: boolean }) => {
+export const SidebarMustachi = (props: {
+  theme: TuiThemeCurrent
+  config: Cfg
+  isBusy?: boolean
+  branch?: string
+  getMessages?: () => any[]
+  contextLimit?: number
+}) => {
   const [pupilIndex, setPupilIndex] = createSignal(0)
   const [blinkFrame, setBlinkFrame] = createSignal(0)
   const [tongueFrame, setTongueFrame] = createSignal(0)
@@ -228,18 +355,39 @@ export const SidebarMustachi = (props: { theme: TuiThemeCurrent; config: Cfg; is
     return lines
   }
 
+  const branchLabel = props.branch?.trim()
+  const messages = props.getMessages?.() ?? []
+  const assistantMessages = messages.filter((message: any) => getMessageRole(message) === "assistant")
+
+  const lastAssistantWithTokens = [...assistantMessages].reverse().find((message: any) => hasTokenData(message))
+  const contextTokens = getContextTokens(lastAssistantWithTokens)
+  const totalCost = assistantMessages.reduce((sum: number, message: any) => sum + getMessageCost(message), 0)
+
   return (
     <box flexDirection="column" alignItems="center">
       {/* Full Mustachi face with semantic zone colors */}
       {buildFace().map(({ content, zone }) => {
-        const color = zoneColors[zone as keyof typeof zoneColors] || zoneColors.mustache
+        const color = getZoneColor(zone, props.theme)
         const paddedLine = content.padEnd(27, " ")
         return <text fg={color}>{paddedLine}</text>
       })}
 
+      {branchLabel && (
+        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>⎇ {branchLabel}</text>
+      )}
+
+      {props.config.show_metrics && (
+        <ProgressBar
+          theme={props.theme}
+          totalTokens={contextTokens}
+          totalCost={totalCost}
+          contextLimit={props.contextLimit}
+        />
+      )}
+
       {/* Display a single busy phrase for the current expressive cycle */}
       {busyPhrase() && (
-        <text fg={props.theme.warning}>{busyPhrase()}</text>
+        <text fg={props.theme?.warning ?? zoneColors.tongue}>{busyPhrase()}</text>
       )}
 
       <text> </text>

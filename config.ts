@@ -7,6 +7,7 @@ export type Cfg = {
   show_detected: boolean
   show_os: boolean
   show_providers: boolean
+  show_metrics: boolean
   animations: boolean
 }
 
@@ -34,6 +35,7 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     show_detected: bool(opts?.show_detected, true),
     show_os: bool(opts?.show_os, true),
     show_providers: bool(opts?.show_providers, true),
+    show_metrics: bool(opts?.show_metrics, true),
     animations: bool(opts?.animations, true),
   }
 }
