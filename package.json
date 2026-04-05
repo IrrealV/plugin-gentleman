@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "plugin-gentleman",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "OpenCode TUI plugin featuring Mustachi - an animated ASCII mascot with eyes, mustache, and optional motivational phrases during busy states",
   "type": "module",
   "exports": {
