@@ -12,6 +12,29 @@ const rec = (value: unknown) => {
   return Object.fromEntries(Object.entries(value))
 }
 
+const toNumber = (value: unknown): number | undefined => {
+  if (typeof value !== "number") return
+  if (!Number.isFinite(value) || value <= 0) return
+  return value
+}
+
+const getContextLimitFromRuntime = (ctxValue: any): number | undefined => {
+  const runtimeMetadata = ctxValue?.runtime?.metadata
+  const metadata = ctxValue?.metadata
+  const model = ctxValue?.model
+
+  return (
+    toNumber(runtimeMetadata?.contextLimit) ??
+    toNumber(runtimeMetadata?.context_limit) ??
+    toNumber(metadata?.contextLimit) ??
+    toNumber(metadata?.context_limit) ??
+    toNumber(model?.contextLimit) ??
+    toNumber(model?.context_limit) ??
+    toNumber(ctxValue?.contextLimit) ??
+    toNumber(ctxValue?.context_limit)
+  )
+}
+
 const tui: TuiPlugin = async (api, options) => {
   const boot = cfg(rec(options))
   if (!boot.enabled) return
@@ -61,17 +84,17 @@ const tui: TuiPlugin = async (api, options) => {
         return <DetectedEnv theme={ctx.theme.current} providers={api.state.provider} config={value()} />
       },
       sidebar_content(ctx) {
-        // Extract sessionID from ctx.value parameter
-        const sessionID = ctx.value?.sessionID
-        
         return (
           <SidebarMustachi 
             theme={ctx.theme.current} 
             config={value()} 
             isBusy={isBusy()}
-            branch={api.state.vcs?.branch}
-            getMessages={() => sessionID ? api.state.session.messages(sessionID) : []}
-            contextLimit={1_000_000}
+            branch={() => api.state.vcs?.branch}
+            getMessages={() => {
+              const sessionID = ctx.value?.sessionID
+              return sessionID ? api.state.session.messages(sessionID) : []
+            }}
+            contextLimit={() => getContextLimitFromRuntime(ctx.value)}
           />
         )
       },

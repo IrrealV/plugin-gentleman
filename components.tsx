@@ -1,7 +1,7 @@
 // @ts-nocheck
 /** @jsxImportSource @opentui/solid */
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
-import { createSignal, onCleanup, createEffect } from "solid-js"
+import { createSignal, onCleanup, createEffect, createMemo } from "solid-js"
 import type { Cfg } from "./config"
 import { getOSName, getProviders } from "./detection"
 import {
@@ -114,6 +114,19 @@ const getMessageCost = (message: any): number => {
   )
 }
 
+const ellipsize = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) return value
+  if (maxLength <= 3) return value.slice(0, maxLength)
+  return `${value.slice(0, maxLength - 3)}...`
+}
+
+const resolveProp = <T,>(value: T | (() => T) | undefined): T | undefined => {
+  if (typeof value === "function") {
+    return (value as () => T)()
+  }
+  return value
+}
+
 const ProgressBar = (props: {
   theme?: TuiThemeCurrent
   totalTokens: number
@@ -121,6 +134,7 @@ const ProgressBar = (props: {
   contextLimit?: number
 }) => {
   const safeLimit = Math.max(0, toNumber(props.contextLimit))
+  const hasContextLimit = safeLimit > 0
   const usagePct = getPct(props.totalTokens, safeLimit)
   const barWidth = 18
   const filled = Math.round((usagePct / 100) * barWidth)
@@ -129,7 +143,9 @@ const ProgressBar = (props: {
   return (
     <box flexDirection="column" alignItems="center" marginTop={1}>
       <text fg={props.theme?.textMuted ?? zoneColors.mustache}>Tokens: {formatTokens(props.totalTokens)}</text>
-      <text fg={props.theme?.accent ?? zoneColors.monocle}>Usage: {usagePct}% {bar}</text>
+      {hasContextLimit && (
+        <text fg={props.theme?.accent ?? zoneColors.monocle}>Usage: {usagePct}% {bar}</text>
+      )}
       <text fg={props.theme?.textMuted ?? zoneColors.mustache}>Cost: {formatCost(props.totalCost)}</text>
     </box>
   )
@@ -174,9 +190,9 @@ export const SidebarMustachi = (props: {
   theme: TuiThemeCurrent
   config: Cfg
   isBusy?: boolean
-  branch?: string
+  branch?: string | (() => string | undefined)
   getMessages?: () => any[]
-  contextLimit?: number
+  contextLimit?: number | (() => number | undefined)
 }) => {
   const [pupilIndex, setPupilIndex] = createSignal(0)
   const [blinkFrame, setBlinkFrame] = createSignal(0)
@@ -294,8 +310,8 @@ export const SidebarMustachi = (props: {
       }, 8000)
     }
 
-    // First cycle after 30-45s, then every 45-60s (calm, occasional expressiveness)
-    const firstDelay = 30000 + Math.random() * 15000
+    // First cycle after 45-60s, then every 45-60s (calm, occasional expressiveness)
+    const firstDelay = 45000 + Math.random() * 15000
     const firstTimeout = setTimeout(triggerExpressiveCycle, firstDelay)
 
     const interval = setInterval(() => {
@@ -355,13 +371,27 @@ export const SidebarMustachi = (props: {
     return lines
   }
 
-  const branchLabel = props.branch?.trim()
-  const messages = props.getMessages?.() ?? []
-  const assistantMessages = messages.filter((message: any) => getMessageRole(message) === "assistant")
+  const branchLabel = createMemo(() => {
+    const value = resolveProp(props.branch)?.trim()
+    if (!value) return ""
+    return ellipsize(value, 24)
+  })
 
-  const lastAssistantWithTokens = [...assistantMessages].reverse().find((message: any) => hasTokenData(message))
-  const contextTokens = getContextTokens(lastAssistantWithTokens)
-  const totalCost = assistantMessages.reduce((sum: number, message: any) => sum + getMessageCost(message), 0)
+  const resolvedContextLimit = createMemo(() => resolveProp(props.contextLimit))
+
+  const assistantMessages = createMemo(() => {
+    const messages = props.getMessages?.() ?? []
+    return messages.filter((message: any) => getMessageRole(message) === "assistant")
+  })
+
+  const contextTokens = createMemo(() => {
+    const lastAssistantWithTokens = [...assistantMessages()].reverse().find((message: any) => hasTokenData(message))
+    return getContextTokens(lastAssistantWithTokens)
+  })
+
+  const totalCost = createMemo(() => {
+    return assistantMessages().reduce((sum: number, message: any) => sum + getMessageCost(message), 0)
+  })
 
   return (
     <box flexDirection="column" alignItems="center">
@@ -372,16 +402,16 @@ export const SidebarMustachi = (props: {
         return <text fg={color}>{paddedLine}</text>
       })}
 
-      {branchLabel && (
-        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>⎇ {branchLabel}</text>
+      {branchLabel() && (
+        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>⎇ {branchLabel()}</text>
       )}
 
       {props.config.show_metrics && (
         <ProgressBar
           theme={props.theme}
-          totalTokens={contextTokens}
-          totalCost={totalCost}
-          contextLimit={props.contextLimit}
+          totalTokens={contextTokens()}
+          totalCost={totalCost()}
+          contextLimit={resolvedContextLimit()}
         />
       )}
 
