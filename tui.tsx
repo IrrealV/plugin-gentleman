@@ -89,11 +89,13 @@ const tui: TuiPlugin = async (api, options) => {
             theme={ctx.theme.current} 
             config={value()} 
             isBusy={isBusy()}
+            providers={api.state.provider}
             branch={() => api.state.vcs?.branch}
             getMessages={() => {
               const sessionID = ctx.value?.sessionID
               return sessionID ? api.state.session.messages(sessionID) : []
             }}
+            runtimeContext={() => ctx.value}
             contextLimit={() => getContextLimitFromRuntime(ctx.value)}
           />
         )

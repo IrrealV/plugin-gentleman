@@ -1,6 +1,8 @@
 // Motivational phrases for busy/loading state
 // Add new phrases here to expand the library
 
+import type { DetectedStack } from "./detection"
+
 export const busyPhrases = [
   // Original classics
   "Ponete las pilas, hermano...",
@@ -76,3 +78,84 @@ export const busyPhrases = [
   "Estoy cerrando con moñito, bancame un toque",
   "¿Cuál es el colmo de un electricista? No encontrar su corriente de trabajo",
 ]
+
+export const frameworkBusyPhrases: Partial<Record<DetectedStack, string[]>> = {
+  react: [
+    "Ajustando hooks y estado...",
+    "Renderizando componentes con onda...",
+    "Sincronizando props y efectos...",
+  ],
+  angular: [
+    "Ordenando módulos y providers...",
+    "Inyectando dependencias como relojito...",
+    "Acomodando el template de Angular...",
+  ],
+  vue: [
+    "Ajustando refs y reactividad...",
+    "Cocinando un composable fino...",
+    "Vue está pensando en voz baja...",
+  ],
+  node: [
+    "Encolando eventos del loop...",
+    "Levantando handlers de Node...",
+    "Conectando rutas del backend...",
+  ],
+  go: [
+    "Compilando goroutines con paciencia...",
+    "Ajustando canales y concurrencia...",
+    "Go está afilando la respuesta...",
+  ],
+  python: [
+    "Ordenando imports y scripts...",
+    "Entrenando al snake para correr más...",
+    "Ajustando funciones con estilo Python...",
+  ],
+  dotnet: [
+    "Alineando servicios de .NET...",
+    "Puliendo capas con C#...",
+    "Ensamblando pipeline de ASP.NET...",
+  ],
+  svelte: [
+    "Svelte está reaccionando en silencio...",
+    "Ajustando stores y transiciones...",
+    "Compilando magia liviana...",
+  ],
+  nextjs: [
+    "Pre-renderizando rutas de Next...",
+    "Ajustando server components...",
+    "Hidratando la app con elegancia...",
+  ],
+  rust: [
+    "Prestando atención al borrow checker...",
+    "Afinando ownership sin piedad...",
+    "Oxidando bugs, una línea a la vez...",
+  ],
+}
+
+const hashSeed = (value: string): number => {
+  let hash = 0
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0
+  }
+  return hash
+}
+
+export const pickBusyPhrase = (input: {
+  framework?: DetectedStack
+  cycle: number
+  previous?: string
+}): string => {
+  const frameworkPool = input.framework ? frameworkBusyPhrases[input.framework] : undefined
+  const pool = frameworkPool && frameworkPool.length > 0 ? [...frameworkPool, ...busyPhrases] : busyPhrases
+
+  if (!pool.length) return ""
+
+  const seed = hashSeed(input.framework || "generic")
+  let index = Math.abs(seed + input.cycle * 7) % pool.length
+
+  if (pool.length > 1 && input.previous && pool[index] === input.previous) {
+    index = (index + 1) % pool.length
+  }
+
+  return pool[index]
+}

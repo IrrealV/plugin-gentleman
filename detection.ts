@@ -2,6 +2,18 @@
 
 import { readFileSync } from "node:fs"
 
+export type DetectedStack =
+  | "react"
+  | "angular"
+  | "vue"
+  | "node"
+  | "go"
+  | "python"
+  | "dotnet"
+  | "svelte"
+  | "nextjs"
+  | "rust"
+
 // Helper to detect OS name
 export const getOSName = (): string => {
   try {
@@ -58,4 +70,111 @@ export const getProviders = (providers: ReadonlyArray<{ id: string; name: string
 
   // Return compact comma-separated list
   return Array.from(names).sort().join(", ")
+}
+
+type StackDetectionInput = {
+  providers?: ReadonlyArray<{ id: string; name: string }>
+  runtimeContext?: any
+  messages?: any[]
+}
+
+const stackRules: Record<DetectedStack, RegExp[]> = {
+  react: [/\breact\b/, /\btsx\b/, /\bjsx\b/],
+  angular: [/\bangular\b/, /\bnx\b/],
+  vue: [/\bvue\b/, /\bnuxt\b/],
+  node: [/\bnode\b/, /\bnodejs\b/, /\bexpress\b/, /\bnestjs\b/],
+  go: [/\bgolang\b/, /\bgo\s+mod\b/, /\bgo\.sum\b/, /\bgin\b/, /\bfiber\b/],
+  python: [/\bpython\b/, /\.py\b/, /\bdjango\b/, /\bfastapi\b/],
+  dotnet: [/\.net\b/, /\bdotnet\b/, /\bc#\b/, /\basp\.net\b/],
+  svelte: [/\bsvelte\b/, /\bsveltekit\b/],
+  nextjs: [/\bnext\.js\b/, /\bnextjs\b/],
+  rust: [/\brust\b/, /\baxum\b/, /\bactix\b/],
+}
+
+const stackPriority: DetectedStack[] = [
+  "nextjs",
+  "react",
+  "angular",
+  "vue",
+  "svelte",
+  "node",
+  "go",
+  "python",
+  "dotnet",
+  "rust",
+]
+
+const pushHint = (bucket: string[], value: unknown) => {
+  if (typeof value === "string" && value.trim()) {
+    bucket.push(value.toLowerCase())
+  }
+}
+
+const extractText = (value: unknown): string => {
+  if (typeof value === "string") return value
+  if (Array.isArray(value)) {
+    return value.map(item => extractText(item)).filter(Boolean).join(" ")
+  }
+  if (value && typeof value === "object") {
+    const item = value as Record<string, unknown>
+    return [extractText(item.text), extractText(item.content), extractText(item.value)]
+      .filter(Boolean)
+      .join(" ")
+  }
+  return ""
+}
+
+export const detectPrimaryStackContext = (input: StackDetectionInput): DetectedStack | undefined => {
+  try {
+    const hints: string[] = []
+    const runtime = input.runtimeContext
+    const model = runtime?.model ?? runtime?.runtime?.model
+    const metadata = runtime?.metadata ?? runtime?.runtime?.metadata
+
+    for (const provider of input.providers ?? []) {
+      pushHint(hints, provider.id)
+      pushHint(hints, provider.name)
+    }
+
+    pushHint(hints, model?.id)
+    pushHint(hints, model?.name)
+    pushHint(hints, runtime?.provider)
+    pushHint(hints, metadata?.framework)
+    pushHint(hints, metadata?.stack)
+    pushHint(hints, metadata?.language)
+
+    const recentMessages = (input.messages ?? []).slice(-6)
+    for (const message of recentMessages) {
+      pushHint(hints, message?.model)
+      pushHint(hints, message?.provider)
+      pushHint(hints, extractText(message?.content))
+      pushHint(hints, extractText(message?.message?.content))
+    }
+
+    if (!hints.length) return
+
+    const scores = new Map<DetectedStack, number>()
+    const corpus = hints.join(" ")
+    for (const stack of stackPriority) {
+      let score = 0
+      for (const pattern of stackRules[stack]) {
+        if (pattern.test(corpus)) score += 1
+      }
+      if (score > 0) scores.set(stack, score)
+    }
+
+    let best: DetectedStack | undefined
+    let bestScore = 0
+    for (const stack of stackPriority) {
+      const score = scores.get(stack) ?? 0
+      if (score > bestScore) {
+        best = stack
+        bestScore = score
+      }
+    }
+
+    return best
+  } catch {
+    return
+  }
 }
