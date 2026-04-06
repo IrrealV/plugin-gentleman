@@ -1,6 +1,7 @@
 // OS and provider detection utilities
 
 import { readFileSync } from "node:fs"
+import type { Message, ProviderInfo, RuntimeContext } from "./types"
 
 export type DetectedStack =
   | "react"
@@ -56,7 +57,7 @@ const providerDisplayNames: Record<string, string> = {
 }
 
 // Helper to detect active providers from OpenCode state
-export const getProviders = (providers: ReadonlyArray<{ id: string; name: string }> | undefined): string => {
+export const getProviders = (providers: ReadonlyArray<ProviderInfo> | undefined): string => {
   if (!providers || providers.length === 0) {
     return "No providers configured"
   }
@@ -73,9 +74,26 @@ export const getProviders = (providers: ReadonlyArray<{ id: string; name: string
 }
 
 type StackDetectionInput = {
-  providers?: ReadonlyArray<{ id: string; name: string }>
-  runtimeContext?: any
-  messages?: any[]
+  providers?: ReadonlyArray<ProviderInfo>
+  runtimeContext?: RuntimeContext
+  messages?: ReadonlyArray<Message>
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return !!value && typeof value === "object" && !Array.isArray(value)
+}
+
+const getMessageField = (message: Message, key: "model" | "provider"): unknown => {
+  const direct = message[key]
+  if (typeof direct === "string") return direct
+  if (isRecord(direct)) return direct.id ?? direct["name"]
+  return undefined
+}
+
+const getRuntimeRecord = (runtimeContext: RuntimeContext | undefined): Record<string, unknown> => {
+  if (!runtimeContext) return {}
+  if (runtimeContext.runtime && isRecord(runtimeContext.runtime)) return runtimeContext.runtime as Record<string, unknown>
+  return runtimeContext as Record<string, unknown>
 }
 
 const stackRules: Record<DetectedStack, RegExp[]> = {
@@ -127,9 +145,9 @@ const extractText = (value: unknown): string => {
 export const detectPrimaryStackContext = (input: StackDetectionInput): DetectedStack | undefined => {
   try {
     const hints: string[] = []
-    const runtime = input.runtimeContext
-    const model = runtime?.model ?? runtime?.runtime?.model
-    const metadata = runtime?.metadata ?? runtime?.runtime?.metadata
+    const runtime = getRuntimeRecord(input.runtimeContext)
+    const model = isRecord(runtime.model) ? runtime.model : undefined
+    const metadata = isRecord(runtime.metadata) ? runtime.metadata : undefined
 
     for (const provider of input.providers ?? []) {
       pushHint(hints, provider.id)
@@ -145,10 +163,10 @@ export const detectPrimaryStackContext = (input: StackDetectionInput): DetectedS
 
     const recentMessages = (input.messages ?? []).slice(-6)
     for (const message of recentMessages) {
-      pushHint(hints, message?.model)
-      pushHint(hints, message?.provider)
-      pushHint(hints, extractText(message?.content))
-      pushHint(hints, extractText(message?.message?.content))
+      pushHint(hints, getMessageField(message, "model"))
+      pushHint(hints, getMessageField(message, "provider"))
+      pushHint(hints, extractText(message.content))
+      pushHint(hints, extractText(message.message?.content))
     }
 
     if (!hints.length) return

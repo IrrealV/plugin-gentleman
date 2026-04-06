@@ -106,7 +106,7 @@ The ASCII representation features:
 - **Eyes** that blink and look in 8 directions (center, up, down, left, right, and 4 diagonals) *(sidebar only)*
 - **Mustache** rendered in grayscale gradient on home screen, semantic zone colors in sidebar
 - **Tongue** that appears during busy states or periodic expressive cycles *(sidebar only)*
-- **Motivational phrases** in Rioplatense Spanish style — one random phrase per expressive cycle *(sidebar only)*
+- **Motivational phrases** in Rioplatense Spanish style — rotating while expressive (36+ phrase library) *(sidebar only)*
 
 **Example phrases during busy states:**
 - *"Ponete las pilas, hermano..."*
@@ -134,11 +134,11 @@ The ASCII representation features:
 **Busy/Expressive State** *(when `animations: true`)*
 - Tongue appears when OpenCode is processing
 - Eyes squint during expressive state
-- A single motivational phrase is chosen for each expressive cycle or busy state (36+ phrase library)
+- Motivational phrases rotate every 3.5 seconds while Mustachi is in expressive/busy state (36+ phrase library)
 - Active during detected busy states OR periodic expressive cycles
 
 **Expressive Cycle Fallback** *(when `animations: true`)*
-- First cycle: 30-45s after load
+- First cycle: 45-60s after load
 - Subsequent cycles: every 45-60s
 - Duration: 8 seconds per cycle
 - Ensures tongue + phrases are visible even if runtime busy detection is unreliable
@@ -194,10 +194,11 @@ All options are configured via plugin tuple syntax in `~/.config/opencode/openco
       {
         "enabled": true,
         "theme": "gentleman",
-        "set_theme": true,
+        "set_theme": false,
         "show_detected": true,
         "show_os": true,
         "show_providers": true,
+        "show_metrics": true,
         "animations": true
       }
     ]
@@ -211,10 +212,11 @@ All options are configured via plugin tuple syntax in `~/.config/opencode/openco
 |--------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable the plugin entirely |
 | `theme` | string | `"gentleman"` | Name of the bundled theme to install |
-| `set_theme` | boolean | `true` | Automatically activate the theme on load |
+| `set_theme` | boolean | `false` | Automatically activate the theme on load |
 | `show_detected` | boolean | `true` | Show the "Detected" environment info line |
 | `show_os` | boolean | `true` | Show detected operating system name |
 | `show_providers` | boolean | `true` | Show detected LLM providers |
+| `show_metrics` | boolean | `true` | Show session token/cost metrics in the sidebar |
 | `animations` | boolean | `true` | Enable Mustachi animations (eyes, busy state) |
 
 ### Examples
@@ -284,7 +286,7 @@ The plugin integrates with OpenCode's TUI system through slot registration:
 6. **Animation Loops:** Starts independent interval timers for:
    - Blink animation (~5-6s average interval)
    - Random eye look-around (~3s interval)
-   - Phrase rotation during expressive states (3s interval)
+   - Phrase rotation during expressive states (3.5s interval)
    - Periodic expressive cycles (45-60s interval)
    *(All sidebar-only, when `animations: true`)*
 7. **Busy State Detection:** Attempts to read `api.state.session.running` for reactive busy state *(best-effort; may not be exposed by all OpenCode versions)*
@@ -373,8 +375,8 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
 2. **Animation Frequency:** Current timing intervals:
    - Blink: ~5-6 seconds average (35% chance every 2s)
    - Look-around: 3 seconds (60% center, 40% random direction)
-   - Phrase rotation: 3 seconds during expressive state
-   - Expressive cycle: first at 30-45s, then every 45-60s
+    - Phrase rotation: every 3.5 seconds during expressive state
+    - Expressive cycle: first at 45-60s, then every 45-60s
    
    To adjust, modify the intervals in `components.tsx` (lines 79, 107, 168, 193-198).
 
@@ -382,6 +384,8 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
    - `home_logo` — mustache-only ASCII art (grayscale gradient)
    - `home_bottom` — environment detection (OS + providers)
    - `sidebar_content` — full Mustachi face with animations
+
+   The plugin requests `mode: "replace"` as a best-effort strategy, but host-native sections such as **Context / MCP / LSP / Modified Files** are controlled by OpenCode and may still appear.
 
 4. **Theme Compatibility:** The plugin installs and optionally activates the Gentleman theme. If you prefer a custom theme, set `set_theme: false`.
 
@@ -415,8 +419,8 @@ All animation intervals are in `components.tsx`:
 - **Look-around interval:** Currently 3000ms (3s)
 - **Blink interval:** Currently 2000ms with 35% chance (~5-6s average)
 - **Blink frame timing:** Currently 80-100ms per frame progression
-- **Phrase selection:** One random phrase per expressive cycle or busy state
-- **Expressive cycle timing:** First cycle at 30-45s, then every 45-60s
+- **Phrase rotation:** Every 3500ms while expressive/busy
+- **Expressive cycle timing:** First cycle at 45-60s, then every 45-60s
 - **Expressive cycle duration:** Currently 8000ms (8s)
 
 **Color customization:**

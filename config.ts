@@ -9,6 +9,7 @@ export type Cfg = {
   show_providers: boolean
   show_metrics: boolean
   animations: boolean
+  cost_budget_usd: number
 }
 
 const rec = (value: unknown) => {
@@ -27,15 +28,22 @@ const bool = (value: unknown, fallback: boolean) => {
   return value
 }
 
+const num = (value: unknown, fallback: number) => {
+  if (typeof value !== "number") return fallback
+  if (!Number.isFinite(value) || value <= 0) return fallback
+  return value
+}
+
 export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
   return {
     enabled: bool(opts?.enabled, true),
     theme: pick(opts?.theme, "gentleman"),
-    set_theme: bool(opts?.set_theme, true),
+    set_theme: bool(opts?.set_theme, false),
     show_detected: bool(opts?.show_detected, true),
     show_os: bool(opts?.show_os, true),
     show_providers: bool(opts?.show_providers, true),
     show_metrics: bool(opts?.show_metrics, true),
     animations: bool(opts?.animations, true),
+    cost_budget_usd: num(opts?.cost_budget_usd, 1),
   }
 }
