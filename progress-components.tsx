@@ -1,9 +1,9 @@
 /** @jsxImportSource @opentui/solid */
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
-import { zoneColors } from "./ascii-frames"
-import { ellipsize, formatCost, formatTokens, getPct, toNumber } from "./message-utils"
-import { getMcpStatusColor } from "./mcp-utils"
-import type { McpItem } from "./types"
+import { zoneColors } from "./ascii-frames.ts"
+import { ellipsize, formatCost, formatTokens, getPct, toNumber } from "./utils/message-utils.ts"
+import { getMcpStatusColor } from "./utils/mcp-utils.ts"
+import type { McpItem } from "./types.ts"
 
 export const ProgressBar = (props: {
   theme?: TuiThemeCurrent

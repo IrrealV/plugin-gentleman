@@ -1,7 +1,7 @@
 // Motivational phrases for busy/loading state
 // Add new phrases here to expand the library
 
-import type { DetectedStack } from "./detection"
+import type { DetectedStack } from "./detection.ts"
 
 export const busyPhrases = [
   // Original classics
