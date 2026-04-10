@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/solid */
 import { createSignal, createEffect, createMemo } from "solid-js"
-import { detectPrimaryStackContext } from "../utils/detection.ts"
+import { getStackFromLsp } from "../utils/detection.ts"
 import { ellipsize } from "../utils/message-utils.ts"
 import { extractMcpItems } from "../utils/mcp-utils.ts"
 import { getRuntimeVisualHint, resolveVisualState, type MustachiVisualState } from "../utils/animation-utils.ts"
@@ -33,12 +33,15 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     return Array.isArray(nextMessages) ? nextMessages : []
   })
 
+  const resolvedLsp = createMemo(() => {
+    const nextLsp = resolveProp(props.lsp)
+    return Array.isArray(nextLsp) ? nextLsp : []
+  })
+
   const detectedStack = createMemo(() => {
-    return detectPrimaryStackContext({
-      providers: props.providers,
-      runtimeContext: resolveProp(props.runtimeContext),
-      messages: resolvedMessages(),
-    })
+    const rawLsp = typeof props.lsp === "function" ? props.lsp() : props.lsp
+    console.debug("[sidebar-mustachi] props.lsp()", rawLsp)
+    return getStackFromLsp([...resolvedLsp()])
   })
 
   const runtimeHint = createMemo(() => getRuntimeVisualHint(resolveProp(props.runtimeContext)))

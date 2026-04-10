@@ -8,7 +8,7 @@ const isRecord = (value: unknown): value is RuntimeRecord => {
 }
 
 const rightEyeStackMark: Record<DetectedStack, string> = {
-  react: "R",
+  react: "T",
   angular: "A",
   vue: "V",
   node: "N",
@@ -16,8 +16,10 @@ const rightEyeStackMark: Record<DetectedStack, string> = {
   python: "P",
   dotnet: "D",
   svelte: "S",
-  nextjs: "X",
+  nextjs: "N",
   rust: "U",
+  cpp: "C",
+  lua: "L",
 }
 
 const replaceCharAt = (line: string, index: number, value: string): string => {
@@ -31,7 +33,7 @@ export const applyRightEyeContextualMark = (frame: string[], stack: DetectedStac
   if (!marker) return frame
 
   return frame.map((line, idx) => {
-    if (idx < 2 || idx > 3) return line
+    if (idx !== 2) return line
     return replaceCharAt(line, 20, marker)
   })
 }

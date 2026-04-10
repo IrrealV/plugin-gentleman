@@ -87,6 +87,14 @@ const tui: TuiPlugin = async (rawApi, options) => {
             sessionId={() => sessionID}
             branch={() => api.state.vcs?.branch}
             getMessages={() => getSessionMessages()}
+            lsp={() => {
+              const rootState = api.state
+              if (typeof rootState.lsp === "function") {
+                return rootState.lsp()
+              }
+
+              return []
+            }}
             mcpData={() => {
               const rootState = api.state
               if (typeof rootState.mcp === "function") {

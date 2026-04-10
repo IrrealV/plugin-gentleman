@@ -1,7 +1,7 @@
 // OS and provider detection utilities
 
 import { readFileSync } from "node:fs"
-import type { Message, ProviderInfo, RuntimeContext } from "../types.ts"
+import type { LspItem, ProviderInfo } from "../types.ts"
 
 export type DetectedStack =
   | "react"
@@ -14,6 +14,8 @@ export type DetectedStack =
   | "svelte"
   | "nextjs"
   | "rust"
+  | "cpp"
+  | "lua"
 
 let cachedOSName: string | undefined
 
@@ -87,126 +89,46 @@ export const getProviders = (providers: ReadonlyArray<ProviderInfo> | undefined)
   return Array.from(names).sort().join(", ")
 }
 
-type StackDetectionInput = {
-  providers?: ReadonlyArray<ProviderInfo>
-  runtimeContext?: RuntimeContext
-  messages?: ReadonlyArray<Message>
+const lspToStack: Record<string, DetectedStack> = {
+  gopls: "go",
+  // TypeScript-family servers keep the React stack bucket;
+  // monocle mark symbol is resolved separately in animation-utils.
+  tsserver: "react",
+  "typescript-language-server": "react",
+  vtsls: "react",
+  "rust-analyzer": "rust",
+  pyright: "python",
+  basedpyright: "python",
+  clangd: "cpp",
+  lua_ls: "lua",
+  omnisharp: "dotnet",
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return !!value && typeof value === "object" && !Array.isArray(value)
-}
-
-const getMessageField = (message: Message, key: "model" | "provider"): unknown => {
-  const direct = message[key]
-  if (typeof direct === "string") return direct
-  if (isRecord(direct)) return direct.id ?? direct["name"]
-  return undefined
-}
-
-const getRuntimeRecord = (runtimeContext: RuntimeContext | undefined): Record<string, unknown> => {
-  if (!runtimeContext) return {}
-  if (runtimeContext.runtime && isRecord(runtimeContext.runtime)) return runtimeContext.runtime as Record<string, unknown>
-  return runtimeContext as Record<string, unknown>
-}
-
-const stackRules: Record<DetectedStack, RegExp[]> = {
-  react: [/\breact\b/, /\btsx\b/, /\bjsx\b/],
-  angular: [/\bangular\b/, /\bnx\b/],
-  vue: [/\bvue\b/, /\bnuxt\b/],
-  node: [/\bnode\b/, /\bnodejs\b/, /\bexpress\b/, /\bnestjs\b/],
-  go: [/\bgolang\b/, /\bgo\s+mod\b/, /\bgo\.sum\b/, /\bgin\b/, /\bfiber\b/],
-  python: [/\bpython\b/, /\.py\b/, /\bdjango\b/, /\bfastapi\b/],
-  dotnet: [/\.net\b/, /\bdotnet\b/, /\bc#\b/, /\basp\.net\b/],
-  svelte: [/\bsvelte\b/, /\bsveltekit\b/],
-  nextjs: [/\bnext\.js\b/, /\bnextjs\b/],
-  rust: [/\brust\b/, /\baxum\b/, /\bactix\b/],
-}
-
-const stackPriority: DetectedStack[] = [
-  "nextjs",
-  "react",
-  "angular",
-  "vue",
-  "svelte",
-  "node",
-  "go",
-  "python",
-  "dotnet",
-  "rust",
-]
-
-const pushHint = (bucket: string[], value: unknown) => {
-  if (typeof value === "string" && value.trim()) {
-    bucket.push(value.toLowerCase())
-  }
-}
-
-const extractText = (value: unknown): string => {
-  if (typeof value === "string") return value
-  if (Array.isArray(value)) {
-    return value.map(item => extractText(item)).filter(Boolean).join(" ")
-  }
-  if (value && typeof value === "object") {
-    const item = value as Record<string, unknown>
-    return [extractText(item.text), extractText(item.content), extractText(item.value)]
-      .filter(Boolean)
-      .join(" ")
-  }
-  return ""
-}
-
-export const detectPrimaryStackContext = (input: StackDetectionInput): DetectedStack | undefined => {
+export const getStackFromLsp = (lspItems: LspItem[]): DetectedStack | undefined => {
   try {
-    const hints: string[] = []
-    const runtime = getRuntimeRecord(input.runtimeContext)
-    const model = isRecord(runtime.model) ? runtime.model : undefined
-    const metadata = isRecord(runtime.metadata) ? runtime.metadata : undefined
+    if (!Array.isArray(lspItems) || lspItems.length === 0) return
 
-    for (const provider of input.providers ?? []) {
-      pushHint(hints, provider.id)
-      pushHint(hints, provider.name)
+    for (const item of lspItems) {
+      const id = typeof item?.id === "string" ? item.id.toLowerCase().trim() : ""
+      console.debug("[getStackFromLsp] item.id", item?.id)
+      if (!id) continue
+
+      const detected = lspToStack[id]
+      if (detected) return detected
     }
 
-    pushHint(hints, model?.id)
-    pushHint(hints, model?.name)
-    pushHint(hints, runtime?.provider)
-    pushHint(hints, metadata?.framework)
-    pushHint(hints, metadata?.stack)
-    pushHint(hints, metadata?.language)
-
-    const recentMessages = (input.messages ?? []).slice(-6)
-    for (const message of recentMessages) {
-      pushHint(hints, getMessageField(message, "model"))
-      pushHint(hints, getMessageField(message, "provider"))
-      pushHint(hints, extractText(message.content))
-      pushHint(hints, extractText(message.message?.content))
-    }
-
-    if (!hints.length) return
-
-    const scores = new Map<DetectedStack, number>()
-    const corpus = hints.join(" ")
-    for (const stack of stackPriority) {
-      let score = 0
-      for (const pattern of stackRules[stack]) {
-        if (pattern.test(corpus)) score += 1
-      }
-      if (score > 0) scores.set(stack, score)
-    }
-
-    let best: DetectedStack | undefined
-    let bestScore = 0
-    for (const stack of stackPriority) {
-      const score = scores.get(stack) ?? 0
-      if (score > bestScore) {
-        best = stack
-        bestScore = score
-      }
-    }
-
-    return best
+    return
   } catch {
     return
   }
+}
+
+type StackDetectionInput = {
+  lsp?: ReadonlyArray<LspItem>
+}
+
+// Legacy shim retained for compatibility with older call-sites.
+// Regex heuristics were removed; this now delegates to native LSP state only.
+export const detectPrimaryStackContext = (input: StackDetectionInput): DetectedStack | undefined => {
+  return getStackFromLsp(Array.isArray(input.lsp) ? [...input.lsp] : [])
 }

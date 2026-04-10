@@ -1,6 +1,6 @@
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
 import { toNumber } from "../utils/message-utils.ts"
-import type { Message, ProviderInfo, RuntimeContext } from "../types.ts"
+import type { LspItem, Message, ProviderInfo, RuntimeContext } from "../types.ts"
 
 export type ProviderCollection = ReadonlyArray<ProviderInfo> | Record<string, ProviderInfo> | undefined
 
@@ -20,6 +20,7 @@ export interface PluginStateApi {
   provider?: ProviderCollection
   session: SessionStateApi
   vcs?: { branch?: string }
+  lsp?: () => ReadonlyArray<LspItem>
   mcp?: () => unknown
   sidebar?: SidebarStateApi
 }

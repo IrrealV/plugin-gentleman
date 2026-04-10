@@ -90,6 +90,13 @@ export interface McpItem {
   isUserDefined?: boolean
 }
 
+export interface LspItem {
+  id: string
+  name?: string
+  status?: string
+  [key: string]: unknown
+}
+
 export interface ProviderModel {
   limit?: { context?: NumericLike }
   [key: string]: unknown
