@@ -3,7 +3,8 @@ import { createSignal, createEffect, createMemo } from "solid-js"
 import { getStackFromLsp } from "../utils/detection.ts"
 import { ellipsize } from "../utils/message-utils.ts"
 import { extractMcpItems } from "../utils/mcp-utils.ts"
-import { getRuntimeVisualHint, resolveVisualState, type MustachiVisualState } from "../utils/animation-utils.ts"
+import { getRuntimeVisualHint, resolveMonocleLensOverlay, resolveVisualState, type MustachiVisualState } from "../utils/animation-utils.ts"
+import { getLatestAssistantModelContext } from "../runtime/plugin-api.ts"
 import { zoneColors } from "../ascii-frames.ts"
 import { McpStatus, ProgressBar } from "../progress-components.tsx"
 import { getZoneColor } from "./zone-colors.ts"
@@ -33,6 +34,8 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     return Array.isArray(nextMessages) ? nextMessages : []
   })
 
+  const latestModelContext = createMemo(() => getLatestAssistantModelContext(resolvedMessages()))
+
   const resolvedLsp = createMemo(() => {
     const nextLsp = resolveProp(props.lsp)
     return Array.isArray(nextLsp) ? nextLsp : []
@@ -49,6 +52,12 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   const runtimeHint = createMemo(() => getRuntimeVisualHint(resolveProp(props.runtimeContext)))
 
+  const resolvedMcp = createMemo(() => resolveProp(props.mcpData))
+
+  const visibleMcpItems = createMemo(() => {
+    return extractMcpItems(resolvedMcp())
+  })
+
   const visualState = createMemo<MustachiVisualState>(() => {
     if (!resolvedPersonalityEnabled()) {
       return "idle"
@@ -62,6 +71,18 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   const shouldShowExpression = createMemo(() => resolvedPersonalityEnabled() && (!!props.isBusy || expressiveCycle()))
+
+  const monocleLensOverlay = createMemo(() =>
+    resolveMonocleLensOverlay({
+      mcpSignalEnabled: true,
+      mcpItems: visibleMcpItems(),
+      providerID: latestModelContext().providerID,
+      modelID: latestModelContext().modelID,
+      runtimeContext: resolveProp(props.runtimeContext),
+      detectedStack: detectedStack(),
+      runtimeHint: runtimeHint(),
+    }),
+  )
 
   setupPupilMovementEffect({
     animations: () => !!props.config.animations,
@@ -107,7 +128,6 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   const resolvedContextLimit = createMemo(() => resolveProp(props.contextLimit))
   const resolvedContextLimitEstimated = createMemo(() => !!resolveProp(props.contextLimitEstimated))
   const resolvedCostBudgetUsd = createMemo(() => resolveProp(props.costBudgetUsd))
-  const resolvedMcp = createMemo(() => resolveProp(props.mcpData))
 
   const liveAssistantStats = createMemo(() => deriveLiveAssistantStats(resolvedMessages()))
 
@@ -136,17 +156,13 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     return live > 0 ? live : cachedCost()
   })
 
-  const visibleMcpItems = createMemo(() => {
-    return extractMcpItems(resolvedMcp())
-  })
-
   return (
     <box flexDirection="column" alignItems="center">
       {buildMustachiFace({
         pupilIndex: pupilIndex(),
         blinkFrame: blinkFrame(),
         visualState: visualState(),
-        detectedStack: detectedStack(),
+        monocleLensOverlay: monocleLensOverlay(),
         shouldShowExpression: shouldShowExpression(),
         tongueFrame: tongueFrame(),
       }).map(({ content, zone }) => {

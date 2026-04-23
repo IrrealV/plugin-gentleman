@@ -6,8 +6,12 @@ import {
   mustachiMustacheSection,
   tongueFrames,
 } from "../../ascii-frames.ts"
-import { applyRightEyeContextualMark, type MustachiVisualState } from "../../utils/animation-utils.ts"
-import type { DetectedStack } from "../../utils/detection.ts"
+import {
+  MONOCLE_LENS_OVERLAY_LINE_INDEX,
+  applyMonocleLensOverlay,
+  type MonocleLensOverlay,
+  type MustachiVisualState,
+} from "../../utils/animation-utils.ts"
 import type { SemanticZone } from "../../types.ts"
 
 export type FaceLine = { content: string; zone: SemanticZone }
@@ -16,7 +20,7 @@ export const buildMustachiFace = (input: {
   pupilIndex: number
   blinkFrame: number
   visualState: MustachiVisualState
-  detectedStack: DetectedStack | undefined
+  monocleLensOverlay: MonocleLensOverlay | undefined
   shouldShowExpression: boolean
   tongueFrame: number
 }): FaceLine[] => {
@@ -30,11 +34,14 @@ export const buildMustachiFace = (input: {
   } else if (input.blinkFrame === 2) {
     eyeFrame = eyeBlinkClosed
   } else {
-    eyeFrame = applyRightEyeContextualMark(eyeFrame, input.detectedStack)
+    eyeFrame = applyMonocleLensOverlay(eyeFrame, input.monocleLensOverlay)
   }
 
+  const hasMonocleLensOverlay = !!input.monocleLensOverlay?.glyph && input.blinkFrame === 0
+
   eyeFrame.forEach((line, idx) => {
-    lines.push({ content: line, zone: idx < 2 ? "monocle" : "eyes" })
+    const zone = idx < 2 || (hasMonocleLensOverlay && idx === MONOCLE_LENS_OVERLAY_LINE_INDEX) ? "monocle" : "eyes"
+    lines.push({ content: line, zone })
   })
 
   mustachiMustacheSection.forEach(line => {
