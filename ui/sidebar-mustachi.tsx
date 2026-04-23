@@ -39,14 +39,21 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   const detectedStack = createMemo(() => {
-    const rawLsp = typeof props.lsp === "function" ? props.lsp() : props.lsp
-    console.debug("[sidebar-mustachi] props.lsp()", rawLsp)
     return getStackFromLsp([...resolvedLsp()])
   })
+
+  const resolvedSessionId = createMemo(() => resolveProp(props.sessionId))
+  const resolvedPersonalityEnabled = createMemo(() => props.config.personality_enabled)
+  const resolvedPersonalityMode = createMemo(() => props.config.personality_mode)
+  const resolvedPersonalityModel = createMemo(() => props.config.personality_model ?? "")
 
   const runtimeHint = createMemo(() => getRuntimeVisualHint(resolveProp(props.runtimeContext)))
 
   const visualState = createMemo<MustachiVisualState>(() => {
+    if (!resolvedPersonalityEnabled()) {
+      return "idle"
+    }
+
     return resolveVisualState({
       isBusy: !!props.isBusy,
       runtimeHint: runtimeHint(),
@@ -54,7 +61,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     })
   })
 
-  const shouldShowExpression = createMemo(() => !!props.isBusy || expressiveCycle())
+  const shouldShowExpression = createMemo(() => resolvedPersonalityEnabled() && (!!props.isBusy || expressiveCycle()))
 
   setupPupilMovementEffect({
     animations: () => !!props.config.animations,
@@ -71,6 +78,13 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     animations: () => !!props.config.animations,
     shouldShowExpression,
     detectedStack,
+    runtimeContext: () => resolveProp(props.runtimeContext),
+    personalityProviders: () => resolveProp(props.providers),
+    personalityEnabled: resolvedPersonalityEnabled,
+    personalityMode: resolvedPersonalityMode,
+    personalityModel: resolvedPersonalityModel,
+    personalityModelClient: () => props.personalityModelClient,
+    sessionId: resolvedSessionId,
     setTongueFrame,
     setBusyPhrase,
     setExpressiveCycle,
@@ -78,9 +92,9 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   setupExpressiveCycleEffect({
-    animations: () => !!props.config.animations,
-    isBusy: () => !!props.isBusy,
-    runtimeHint,
+    animations: () => !!props.config.animations && resolvedPersonalityEnabled(),
+    isBusy: () => resolvedPersonalityEnabled() && !!props.isBusy,
+    runtimeHint: () => (resolvedPersonalityEnabled() ? runtimeHint() : undefined),
     setExpressiveCycle,
   })
 
@@ -93,7 +107,6 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   const resolvedContextLimit = createMemo(() => resolveProp(props.contextLimit))
   const resolvedContextLimitEstimated = createMemo(() => !!resolveProp(props.contextLimitEstimated))
   const resolvedCostBudgetUsd = createMemo(() => resolveProp(props.costBudgetUsd))
-  const resolvedSessionId = createMemo(() => resolveProp(props.sessionId))
   const resolvedMcp = createMemo(() => resolveProp(props.mcpData))
 
   const liveAssistantStats = createMemo(() => deriveLiveAssistantStats(resolvedMessages()))

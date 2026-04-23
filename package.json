@@ -16,6 +16,9 @@
         "show_providers": true,
         "show_metrics": true,
         "animations": true,
+        "personality_enabled": true,
+        "personality_mode": "auto",
+        "personality_model": "",
         "cost_budget_usd": 1
       }
     }

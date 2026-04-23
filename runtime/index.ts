@@ -1,2 +1,7 @@
 export * from "./plugin-api.ts"
 export * from "./busy-detection.ts"
+export * from "./constants.ts"
+export * from "./mustachi-context.ts"
+export * from "./model-client.ts"
+export * from "./model-resolver.ts"
+export * from "./personality-layer.ts"

@@ -14,6 +14,7 @@ import {
   type PluginApiLike,
 } from "./runtime/plugin-api.ts"
 import { isSessionBusy } from "./runtime/busy-detection.ts"
+import { createMustachiModelClient } from "./runtime/model-client.ts"
 
 const id = "gentleman"
 
@@ -32,6 +33,7 @@ const tui: TuiPlugin = async (rawApi, options) => {
 
   const [value] = createSignal(boot)
   const [isBusy, setIsBusy] = createSignal(false)
+  const personalityModelClient = createMustachiModelClient(api)
 
   void (async () => {
     try {
@@ -84,6 +86,7 @@ const tui: TuiPlugin = async (rawApi, options) => {
             config={value()}
             isBusy={isSessionBusy(sessionStatus) || isBusy()}
             providers={getProviderArray(api.state.provider)}
+            personalityModelClient={personalityModelClient}
             sessionId={() => sessionID}
             branch={() => api.state.vcs?.branch}
             getMessages={() => getSessionMessages()}

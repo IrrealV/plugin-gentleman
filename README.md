@@ -199,7 +199,10 @@ All options are configured via plugin tuple syntax in `~/.config/opencode/openco
         "show_os": true,
         "show_providers": true,
         "show_metrics": true,
-        "animations": true
+        "animations": true,
+        "personality_enabled": true,
+        "personality_mode": "auto",
+        "personality_model": ""
       }
     ]
   ]
@@ -218,6 +221,20 @@ All options are configured via plugin tuple syntax in `~/.config/opencode/openco
 | `show_providers` | boolean | `true` | Show detected LLM providers |
 | `show_metrics` | boolean | `true` | Show session token/cost metrics in the sidebar |
 | `animations` | boolean | `true` | Enable Mustachi animations (eyes, busy state) |
+| `personality_enabled` | boolean | `true` | Enable personality phrases and tongue expression |
+| `personality_mode` | string (one of: `"auto"`, `"off"`) | `"auto"` | `"auto"`: allow runtime-aware dynamic generation when safe; `"off"`: force fallback phrases only |
+| `personality_model` | string | `""` | Optional preferred model in canonical `provider/model` format (for example `google/gemini-2.5-flash`) |
+
+### Personality settings
+
+- `personality_enabled` (default `true`): turns Mustachi personality UX (tongue + phrases) on/off.
+- `personality_mode` (default `"auto"`):
+  - `auto`: allow runtime-aware dynamic generation when a safe seam is available.
+  - `off`: keep fallback phrase behavior only.
+- `personality_model`: optional explicit model preference in `provider/model` format.
+  - Valid example: `google/gemini-2.5-flash`
+  - Invalid examples (graceful fallback): `gemini-2.5-flash`, `google/gemini/flash`, `google:`
+  - If invalid, Mustachi does **not** guess; it falls back through `small_model` → allowlisted free model → offline phrases.
 
 ### Examples
 

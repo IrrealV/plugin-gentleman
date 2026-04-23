@@ -10,6 +10,10 @@ export type Cfg = {
   show_metrics: boolean
   animations: boolean
   cost_budget_usd: number
+  personality_enabled: boolean
+  personality_mode: "auto" | "off"
+  // Canonical format: "provider/model" (for example "google/gemini-2.5-flash")
+  personality_model: string
 }
 
 const rec = (value: unknown) => {
@@ -34,6 +38,22 @@ const num = (value: unknown, fallback: number) => {
   return value
 }
 
+const str = (value: unknown, fallback: string) => {
+  if (typeof value !== "string") return fallback
+  if (!value.trim()) return fallback
+  return value
+}
+
+const canonicalModel = (value: unknown): string => {
+  if (typeof value !== "string") return ""
+  return value.trim()
+}
+
+const oneOf = (value: unknown, allowed: readonly string[], fallback: string) => {
+  const normalized = str(value, fallback)
+  return allowed.includes(normalized.toLowerCase()) ? (normalized.toLowerCase() as typeof allowed[number]) : fallback
+}
+
 export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
   return {
     enabled: bool(opts?.enabled, true),
@@ -45,5 +65,8 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     show_metrics: bool(opts?.show_metrics, true),
     animations: bool(opts?.animations, true),
     cost_budget_usd: num(opts?.cost_budget_usd, 1),
+    personality_enabled: bool(opts?.personality_enabled, true),
+    personality_mode: oneOf(opts?.personality_mode, ["auto", "off"], "auto"),
+    personality_model: canonicalModel(opts?.personality_model),
   }
 }
