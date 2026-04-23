@@ -81,6 +81,14 @@ opencode plugin ./plugin-gentleman-<version>.tgz --global
 
 *If your OpenCode version doesn't accept a tarball path, use the published package flow instead.*
 
+**Local Cache Smoke Check:**
+
+```bash
+./mini-local-check.sh
+```
+
+This repository script packs the current workspace, clears the local OpenCode cache for `plugin-gentleman`, installs the tarball into OpenCode's active local package slot, and prints a short manual runtime checklist. It is intended for developer smoke checks before publishing; it is **not** a general end-user installer.
+
 ---
 
 ## Features
@@ -322,11 +330,12 @@ The plugin integrates with OpenCode's TUI system through slot registration:
 The plugin is structured as a multi-file module for maintainability and clarity:
 
 - **`tui.tsx`** — Plugin entry point. Handles initialization, theme setup, slot registration, and busy state detection.
-- **`components.tsx`** — All UI components (`HomeLogo`, `SidebarMustachi`, `DetectedEnv`). Contains all animation logic with Solid.js signals and effects (blink, look-around, expressive cycle).
+- **`ui/`** — Solid.js UI components (`HomeLogo`, `SidebarMustachi`, `DetectedEnv`) plus sidebar-specific helpers/effects.
 - **`ascii-frames.ts`** — All ASCII art assets: 9 eye position frames, 3 blink frames, squinted eyes, mustache designs, 3 tongue frames, and zone color definitions.
 - **`phrases.ts`** — Library of 36+ motivational phrases (Rioplatense Spanish style) shown during expressive states.
 - **`config.ts`** — Configuration parsing with type-safe defaults and validation helpers.
-- **`detection.ts`** — OS detection (reads `/etc/os-release` on Linux) and provider name mapping.
+- **`utils/`** — OS/provider/stack detection, animation utilities, MCP helpers, and message/cost formatting.
+- **`runtime/`** — Plugin API helpers, busy detection, model resolution/client seam, Mustachi context summarization, and personality layer orchestration.
 
 ---
 
@@ -370,18 +379,22 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
 
 **Files included in npm package** *(via `files` field in `package.json`)*:
 - `tui.tsx` — plugin entry point and slot registration
-- `components.tsx` — UI components (HomeLogo, SidebarMustachi, DetectedEnv)
+- `ui/` — UI components and sidebar effects/helpers
+- `runtime/` — runtime helpers, model resolver/client seam, and personality layer
+- `utils/` — detection, animation, MCP, and message utilities
 - `ascii-frames.ts` — all ASCII art frames, eye positions, and color definitions
 - `phrases.ts` — motivational phrases library for busy states
 - `config.ts` — configuration parsing helpers and type definitions
-- `detection.ts` — OS and provider detection utilities
+- `types.ts` — shared type definitions
+- root compatibility re-exports: `detection.ts`, `animation-utils.ts`, `message-utils.ts`, `mcp-utils.ts`
+- `progress-components.tsx` — sidebar metrics/MCP rendering components
 - `gentleman.json` — theme definition
 - `package.json` — auto-included by npm
 - `README.md` — auto-included by npm
 
 **Repository-only files** *(excluded from npm package)*:
-- `gentleman-local.ts` — legacy local system plugin with limited features
-- `install-local-real.sh`, `install-local.sh` — local installation scripts
+- `mini-local-check.sh` — developer-only local cache smoke-check script
+- `.atl/` — local Agent Teams/SDD artifact metadata when present
 
 ---
 
@@ -395,7 +408,7 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
     - Phrase rotation: every 3.5 seconds during expressive state
     - Expressive cycle: first at 45-60s, then every 45-60s
    
-   To adjust, modify the intervals in `components.tsx` (lines 79, 107, 168, 193-198).
+   To adjust, modify the intervals in `ui/sidebar/expression-effects.ts`.
 
 3. **Slot Usage:** The plugin uses these OpenCode TUI slots:
    - `home_logo` — mustache-only ASCII art (grayscale gradient)
@@ -418,21 +431,21 @@ The plugin is organized into focused modules for easy customization:
 
 - **Motivational phrases:** Edit `phrases.ts` — add new phrases to the `busyPhrases` array (currently 36+ phrases)
 - **ASCII art frames:** Edit `ascii-frames.ts` — modify eye positions (9 variants), blink frames (3 stages), mustache designs, or tongue states (binary on/off)
-- **UI logic:** Edit `components.tsx` — adjust animation timings, add new effects, or tweak component layout
+- **UI logic:** Edit `ui/` — adjust components, sidebar effects, and layout
 - **Configuration:** Edit `config.ts` — add new config options with type-safe defaults
-- **Detection logic:** Edit `detection.ts` — add new OS detection patterns or provider mappings
+- **Detection logic:** Edit `utils/detection.ts` and related `utils/` helpers — add OS/provider/stack patterns or marker behavior
 - **Plugin behavior:** Edit `tui.tsx` — modify slot registration, initialization flow, or busy detection
 
 **Testing locally:**
 
 1. Make your changes in the appropriate file(s)
-2. Test with `npm link` or `npm pack` (see "For Developers" section above)
+2. Test with `npm link`, `npm pack`, or `./mini-local-check.sh` (see "For Developers" section above)
 3. No build step needed — OpenCode transpiles TSX at runtime
 4. Restart OpenCode to see changes
 
 **Animation timing customization:**
 
-All animation intervals are in `components.tsx`:
+Animation intervals are handled in `ui/sidebar/expression-effects.ts`:
 - **Look-around interval:** Currently 3000ms (3s)
 - **Blink interval:** Currently 2000ms with 35% chance (~5-6s average)
 - **Blink frame timing:** Currently 80-100ms per frame progression
@@ -443,7 +456,7 @@ All animation intervals are in `components.tsx`:
 **Color customization:**
 
 - **Zone colors (sidebar):** Edit `zoneColors` object in `ascii-frames.ts` (monocle, eyes, mustache, tongue)
-- **Home grayscale gradient:** Edit `HomeLogo` component in `components.tsx` (top/middle/bottom color values)
+- **Home grayscale gradient:** Edit `HomeLogo` component in `ui/home-logo.tsx` (top/middle/bottom color values)
 - **Theme colors:** Edit `gentleman.json` for the full color palette
 
 ---

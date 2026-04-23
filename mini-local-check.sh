@@ -74,9 +74,10 @@ main() {
   local cache_packages_root="$HOME/.cache/opencode/packages"
   local tarball=""
   local markers=(
-    "session_id"
-    "set_theme\": false"
-    "show_metrics"
+    "personality_enabled"
+    "personality_model"
+    "resolveMonocleLensOverlay"
+    "applyMonocleLensOverlay"
   )
 
   log_info "Checking required commands"
@@ -86,7 +87,11 @@ main() {
   log_ok "All required commands are available"
 
   log_info "Packing plugin tarball with npm pack"
-  tarball="$(npm pack | tail -n 1)"
+  tarball="$(npm pack --json | node -e '
+const fs = require("fs");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+process.stdout.write(payload?.[0]?.filename || "");
+')"
   [[ -n "$tarball" ]] || die "npm pack did not return a tarball name."
   [[ -f "$tarball" ]] || die "Tarball '${tarball}' was not found in repo root."
   log_ok "Tarball created: ${tarball}"
@@ -116,7 +121,7 @@ main() {
     log_warn "No cache package.json found after install; version verification skipped."
   fi
 
-  log_info "Checking hotfix markers in cache"
+  log_info "Checking current feature markers in cache"
   local marker
   for marker in "${markers[@]}"; do
     if search_marker_in_dir "$marker" "$cache_packages" || search_marker_in_dir "$marker" "$cache_node_modules"; then
@@ -128,9 +133,13 @@ main() {
 
   printf "\n${BLUE}Runtime checklist (manual, after restarting OpenCode):${NC}\n"
   printf "  1) Restart OpenCode completely.\n"
-  printf "  2) Trigger plugin flow that emits metrics/session fields.\n"
-  printf "  3) Confirm no regressions in plugin commands/UI behavior.\n"
-  printf "  4) Verify expected hotfix behavior around: session_id, set_theme=false, show_metrics.\n"
+  printf "  2) Open a session with sidebar visible.\n"
+  printf "  3) Confirm Mustachi renders, metrics still work, and no TUI regressions appear.\n"
+  printf "  4) Toggle personality options in plugin config if needed:\n"
+  printf "     - personality_enabled=false should keep Mustachi neutral.\n"
+  printf "     - personality_mode=off should keep fallback phrases only.\n"
+  printf "     - personality_model should use canonical provider/model format.\n"
+  printf "  5) Confirm monocle overlay reacts to MCP/model/stack/runtime signals when available.\n"
   printf "\n${GREEN}Done.${NC} Local verification artifact: %s\n" "$tarball"
 }
 
