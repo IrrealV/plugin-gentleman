@@ -75,6 +75,17 @@ const tui: TuiPlugin = async (rawApi, options) => {
           return api.state.session.messages(sessionID)
         }
 
+        const getModifiedFiles = () => {
+          try {
+            if (!sessionID || typeof api.state.session.diff !== "function") return []
+            const diff = api.state.session.diff(sessionID)
+            return Array.isArray(diff) ? diff : []
+          } catch {
+            // feature-detection path: keep silent to avoid noisy logs on hosts without this API
+            return []
+          }
+        }
+
         const sessionStatus =
           sessionID && typeof api.state?.session?.status === "function"
             ? api.state.session.status(sessionID)
@@ -90,6 +101,7 @@ const tui: TuiPlugin = async (rawApi, options) => {
             sessionId={() => sessionID}
             branch={() => api.state.vcs?.branch}
             getMessages={() => getSessionMessages()}
+            modifiedFiles={() => getModifiedFiles()}
             lsp={() => {
               const rootState = api.state
               if (typeof rootState.lsp === "function") {

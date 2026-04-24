@@ -1,5 +1,5 @@
 import type { DetectedStack } from "./detection.ts"
-import type { McpItem, RuntimeContext } from "../types.ts"
+import type { McpItem, ModifiedFileItem, RuntimeContext } from "../types.ts"
 
 type RuntimeRecord = Record<string, unknown>
 
@@ -24,7 +24,7 @@ const monocleLensStackGlyph: Record<DetectedStack, string> = {
 
 export type MonocleLensOverlay = {
   glyph: string
-  source: "mcp" | "model" | "stack" | "runtime"
+  source: "modified" | "mcp" | "model" | "stack" | "runtime"
 }
 
 export type MonocleLensOverlayAnchor = {
@@ -44,6 +44,23 @@ const monocleLensRuntimeGlyph: Record<Exclude<MustachiVisualState, "idle">, stri
   working: "◑",
   thinking: "◌",
 }
+
+const monocleLensFileTypeGlyph = {
+  typescript: "◈",
+  javascript: "●",
+  json: "◫",
+  markdown: "◇",
+  styles: "◧",
+  markup: "◌",
+  go: "◆",
+  python: "◐",
+  rust: "◧",
+  dotnet: "◍",
+  lua: "◦",
+  shell: "◒",
+  config: "◉",
+  generic: "·",
+} as const
 
 const activeMcpStatuses = new Set(["connected", "enabled", "ready", "online", "active", "running"])
 
@@ -164,7 +181,65 @@ const resolveModelGlyph = (input: { providerID?: string; modelID?: string; runti
   return monocleLensModelGlyph.generic
 }
 
+const getPathBasename = (file: string): string => {
+  const normalized = file.split(/[?#]/, 1)[0] ?? ""
+  return normalized.split(/[\\/]/).pop()?.toLowerCase() ?? ""
+}
+
+const getFileExtension = (file: string): string => {
+  const basename = getPathBasename(file)
+  if (!basename || basename.startsWith(".") && basename.indexOf(".", 1) === -1) return ""
+  return basename.includes(".") ? basename.split(".").pop() ?? "" : basename
+}
+
+const resolveFileTypeGlyph = (file: string): string | undefined => {
+  const basename = getPathBasename(file)
+  const extension = getFileExtension(file)
+
+  if (["ts", "tsx", "mts", "cts"].includes(extension)) return monocleLensFileTypeGlyph.typescript
+  if (["js", "jsx", "mjs", "cjs"].includes(extension)) return monocleLensFileTypeGlyph.javascript
+  if (["json", "jsonc"].includes(extension) || basename === "package-lock.json") return monocleLensFileTypeGlyph.json
+  if (["md", "mdx", "markdown"].includes(extension)) return monocleLensFileTypeGlyph.markdown
+  if (["css", "scss", "sass", "less", "styl"].includes(extension)) return monocleLensFileTypeGlyph.styles
+  if (["html", "htm", "xml", "svg"].includes(extension)) return monocleLensFileTypeGlyph.markup
+  if (extension === "go") return monocleLensFileTypeGlyph.go
+  if (["py", "pyw"].includes(extension)) return monocleLensFileTypeGlyph.python
+  if (extension === "rs") return monocleLensFileTypeGlyph.rust
+  if (["cs", "fs", "vb"].includes(extension)) return monocleLensFileTypeGlyph.dotnet
+  if (extension === "lua") return monocleLensFileTypeGlyph.lua
+  if (["sh", "bash", "zsh", "fish"].includes(extension)) return monocleLensFileTypeGlyph.shell
+  if (["yaml", "yml", "toml", "ini", "env"].includes(extension)) return monocleLensFileTypeGlyph.config
+  if (["dockerfile", "makefile", "justfile"].includes(basename)) return monocleLensFileTypeGlyph.config
+  if (extension) return monocleLensFileTypeGlyph.generic
+  return
+}
+
+const resolveModifiedFileGlyph = (files: ReadonlyArray<ModifiedFileItem> | undefined): string | undefined => {
+  try {
+    if (!Array.isArray(files) || files.length === 0) return
+
+    const candidates = files
+      .filter(item => isRecord(item) && typeof item.file === "string" && item.file.trim())
+      .map((item, index) => ({
+        file: item.file,
+        index,
+        activity: Number(item.additions ?? 0) + Number(item.deletions ?? 0),
+      }))
+      .sort((left, right) => right.activity - left.activity || left.index - right.index)
+
+    for (const candidate of candidates) {
+      const glyph = resolveFileTypeGlyph(candidate.file)
+      if (glyph) return glyph
+    }
+
+    return
+  } catch {
+    return
+  }
+}
+
 export const resolveMonocleLensOverlay = (input: {
+  modifiedFiles?: ReadonlyArray<ModifiedFileItem>
   mcpSignalEnabled?: boolean
   mcpItems?: ReadonlyArray<McpItem>
   providerID?: string
@@ -174,6 +249,9 @@ export const resolveMonocleLensOverlay = (input: {
   runtimeHint?: MustachiVisualState
 }): MonocleLensOverlay | undefined => {
   try {
+    const modifiedFileGlyph = resolveModifiedFileGlyph(input.modifiedFiles)
+    if (modifiedFileGlyph) return { glyph: modifiedFileGlyph, source: "modified" }
+
     if (input.mcpSignalEnabled === true && hasMcpSignal(input.mcpItems)) return { glyph: "✦", source: "mcp" }
 
     const modelGlyph = resolveModelGlyph(input)

@@ -1,6 +1,6 @@
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
 import { toNumber } from "../utils/message-utils.ts"
-import type { LspItem, Message, ProviderInfo, RuntimeContext } from "../types.ts"
+import type { LspItem, Message, ModifiedFileItem, ProviderInfo, RuntimeContext } from "../types.ts"
 
 export type ProviderCollection = ReadonlyArray<ProviderInfo> | Record<string, ProviderInfo> | undefined
 
@@ -10,6 +10,7 @@ export interface SessionStateApi {
   running?: boolean
   messages?: (sessionId: string) => Message[]
   status?: (sessionId: string) => unknown
+  diff?: (sessionId: string) => ReadonlyArray<ModifiedFileItem>
 }
 
 export interface SidebarStateApi {

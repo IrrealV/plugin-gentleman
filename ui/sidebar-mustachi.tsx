@@ -41,6 +41,11 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     return Array.isArray(nextLsp) ? nextLsp : []
   })
 
+  const resolvedModifiedFiles = createMemo(() => {
+    const nextModifiedFiles = resolveProp(props.modifiedFiles)
+    return Array.isArray(nextModifiedFiles) ? nextModifiedFiles : []
+  })
+
   const detectedStack = createMemo(() => {
     return getStackFromLsp([...resolvedLsp()])
   })
@@ -74,6 +79,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   const monocleLensOverlay = createMemo(() =>
     resolveMonocleLensOverlay({
+      modifiedFiles: resolvedModifiedFiles(),
       mcpSignalEnabled: true,
       mcpItems: visibleMcpItems(),
       providerID: latestModelContext().providerID,

@@ -97,6 +97,12 @@ export interface LspItem {
   [key: string]: unknown
 }
 
+export interface ModifiedFileItem {
+  file: string
+  additions?: number
+  deletions?: number
+}
+
 export interface ProviderModel {
   limit?: { context?: NumericLike }
   [key: string]: unknown
