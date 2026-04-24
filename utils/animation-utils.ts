@@ -27,6 +27,11 @@ export type MonocleLensOverlay = {
   source: "mcp" | "model" | "stack" | "runtime"
 }
 
+export type MonocleLensOverlayAnchor = {
+  lineIndex: number
+  columnIndex: number
+}
+
 const monocleLensModelGlyph = {
   openai: "◎",
   anthropic: "◍",
@@ -45,9 +50,64 @@ const activeMcpStatuses = new Set(["connected", "enabled", "ready", "online", "a
 export const MONOCLE_LENS_OVERLAY_LINE_INDEX = 2
 const MONOCLE_LENS_OVERLAY_COLUMN_INDEX = 7
 
+const MONOCLE_LENS_OVERLAY_FALLBACK_ANCHOR: MonocleLensOverlayAnchor = {
+  lineIndex: MONOCLE_LENS_OVERLAY_LINE_INDEX,
+  columnIndex: MONOCLE_LENS_OVERLAY_COLUMN_INDEX,
+}
+
+const monocleLensOverlayAnchorsByPupilIndex: Record<number, MonocleLensOverlayAnchor> = {
+  0: { lineIndex: 2, columnIndex: 7 },
+  1: { lineIndex: 1, columnIndex: 7 },
+  2: { lineIndex: 3, columnIndex: 7 },
+  3: { lineIndex: 2, columnIndex: 5 },
+  4: { lineIndex: 2, columnIndex: 9 },
+  5: { lineIndex: 1, columnIndex: 5 },
+  6: { lineIndex: 1, columnIndex: 9 },
+  7: { lineIndex: 3, columnIndex: 5 },
+  8: { lineIndex: 3, columnIndex: 9 },
+}
+
 const replaceCharAt = (line: string, index: number, value: string): string => {
   if (index < 0 || index >= line.length) return line
   return `${line.slice(0, index)}${value}${line.slice(index + 1)}`
+}
+
+const isOverlayAnchorUsable = (frame: string[], anchor: MonocleLensOverlayAnchor | undefined): anchor is MonocleLensOverlayAnchor => {
+  if (!anchor) return false
+  const line = frame[anchor.lineIndex]
+  if (typeof line !== "string") return false
+  const char = line[anchor.columnIndex]
+  return char === " "
+}
+
+export const resolveMonocleLensOverlayAnchor = (
+  frame: string[],
+  pupilIndex?: number,
+): MonocleLensOverlayAnchor => {
+  try {
+    const mappedAnchor = typeof pupilIndex === "number" ? monocleLensOverlayAnchorsByPupilIndex[pupilIndex] : undefined
+    if (isOverlayAnchorUsable(frame, mappedAnchor)) return mappedAnchor
+
+    const candidates: MonocleLensOverlayAnchor[] = []
+    for (let lineIndex = 1; lineIndex <= 3; lineIndex += 1) {
+      const line = frame[lineIndex]
+      if (typeof line !== "string") continue
+      for (let columnIndex = 4; columnIndex <= 10; columnIndex += 1) {
+        if (line[columnIndex] === " ") candidates.push({ lineIndex, columnIndex })
+      }
+    }
+
+    const nearestCandidate = candidates.sort((left, right) => {
+      const leftDistance = Math.abs(left.lineIndex - MONOCLE_LENS_OVERLAY_LINE_INDEX) + Math.abs(left.columnIndex - MONOCLE_LENS_OVERLAY_COLUMN_INDEX)
+      const rightDistance = Math.abs(right.lineIndex - MONOCLE_LENS_OVERLAY_LINE_INDEX) + Math.abs(right.columnIndex - MONOCLE_LENS_OVERLAY_COLUMN_INDEX)
+      return leftDistance - rightDistance
+    })[0]
+
+    if (isOverlayAnchorUsable(frame, nearestCandidate)) return nearestCandidate
+    return MONOCLE_LENS_OVERLAY_FALLBACK_ANCHOR
+  } catch {
+    return MONOCLE_LENS_OVERLAY_FALLBACK_ANCHOR
+  }
 }
 
 const normalizeToken = (value: unknown): string => String(value ?? "").trim().toLowerCase()
@@ -132,13 +192,18 @@ export const resolveMonocleLensOverlay = (input: {
   }
 }
 
-export const applyMonocleLensOverlay = (frame: string[], overlay: MonocleLensOverlay | undefined): string[] => {
+export const applyMonocleLensOverlay = (
+  frame: string[],
+  overlay: MonocleLensOverlay | undefined,
+  input?: { pupilIndex?: number; anchor?: MonocleLensOverlayAnchor },
+): string[] => {
   try {
     if (!overlay?.glyph) return frame
+    const anchor = input?.anchor ?? resolveMonocleLensOverlayAnchor(frame, input?.pupilIndex)
 
     return frame.map((line, idx) => {
-      if (idx !== MONOCLE_LENS_OVERLAY_LINE_INDEX) return line
-      return replaceCharAt(line, MONOCLE_LENS_OVERLAY_COLUMN_INDEX, overlay.glyph)
+      if (idx !== anchor.lineIndex) return line
+      return replaceCharAt(line, anchor.columnIndex, overlay.glyph)
     })
   } catch {
     return frame

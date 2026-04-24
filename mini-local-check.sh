@@ -140,6 +140,8 @@ process.stdout.write(payload?.[0]?.filename || "");
   printf "     - personality_mode=off should keep fallback phrases only.\n"
   printf "     - personality_model should use canonical provider/model format.\n"
   printf "  5) Confirm monocle overlay reacts to MCP/model/stack/runtime signals when available.\n"
+  printf "  6) To verify the published npm update path separately, run:\n"
+  printf "     opencode plugin plugin-gentleman@latest --global --force\n"
   printf "\n${GREEN}Done.${NC} Local verification artifact: %s\n" "$tarball"
 }
 

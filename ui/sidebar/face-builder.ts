@@ -7,9 +7,10 @@ import {
   tongueFrames,
 } from "../../ascii-frames.ts"
 import {
-  MONOCLE_LENS_OVERLAY_LINE_INDEX,
   applyMonocleLensOverlay,
+  resolveMonocleLensOverlayAnchor,
   type MonocleLensOverlay,
+  type MonocleLensOverlayAnchor,
   type MustachiVisualState,
 } from "../../utils/animation-utils.ts"
 import type { SemanticZone } from "../../types.ts"
@@ -28,19 +29,23 @@ export const buildMustachiFace = (input: {
 
   let eyeFrame = pupilPositionFrames[input.pupilIndex]
   if (input.visualState !== "idle") eyeFrame = eyeSquinted
+  let monocleLensOverlayAnchor: MonocleLensOverlayAnchor | undefined
 
   if (input.blinkFrame === 1) {
     eyeFrame = eyeBlinkHalf
   } else if (input.blinkFrame === 2) {
     eyeFrame = eyeBlinkClosed
   } else {
-    eyeFrame = applyMonocleLensOverlay(eyeFrame, input.monocleLensOverlay)
+    monocleLensOverlayAnchor = resolveMonocleLensOverlayAnchor(eyeFrame, input.pupilIndex)
+    eyeFrame = applyMonocleLensOverlay(eyeFrame, input.monocleLensOverlay, {
+      anchor: monocleLensOverlayAnchor,
+    })
   }
 
   const hasMonocleLensOverlay = !!input.monocleLensOverlay?.glyph && input.blinkFrame === 0
 
   eyeFrame.forEach((line, idx) => {
-    const zone = idx < 2 || (hasMonocleLensOverlay && idx === MONOCLE_LENS_OVERLAY_LINE_INDEX) ? "monocle" : "eyes"
+    const zone = idx < 2 || (hasMonocleLensOverlay && idx === monocleLensOverlayAnchor?.lineIndex) ? "monocle" : "eyes"
     lines.push({ content: line, zone })
   })
 

@@ -38,6 +38,16 @@ OpenCode will download the package and update your TUI config automatically.
 - `Detected: <OS> · <providers>` below the prompt area
 - Full Mustachi face in the sidebar
 
+### Updating
+
+If you already have Plugin Gentleman installed, force OpenCode to refresh the cached npm package:
+
+```bash
+opencode plugin plugin-gentleman@latest --global --force
+```
+
+`--force` matters: when a plugin is already configured, OpenCode may otherwise keep the existing cached package/config entry. Restart OpenCode after updating.
+
 ### Alternative: Manual Configuration
 
 If you prefer managing config yourself, add this to `~/.config/opencode/opencode.json`:
@@ -45,11 +55,36 @@ If you prefer managing config yourself, add this to `~/.config/opencode/opencode
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["plugin-gentleman"]
+  "plugin": ["plugin-gentleman@latest"]
 }
 ```
 
 OpenCode will install npm plugins automatically on startup.
+
+---
+
+### Configure Mustachi from the CLI
+
+If you installed the package, you can update Mustachi personality settings without editing JSON manually:
+
+```bash
+npx plugin-gentleman setup --mode auto --model google/gemini-2.5-flash
+npx plugin-gentleman configure --disable
+npx plugin-gentleman configure --model ""
+```
+
+By default the CLI updates `~/.config/opencode/tui.json`, finds the existing `plugin-gentleman` entry whether it is a string or tuple, preserves existing options, and only changes `personality_enabled`, `personality_mode`, and `personality_model`.
+
+Useful flags:
+
+```bash
+npx plugin-gentleman configure --enable
+npx plugin-gentleman configure --mode off
+npx plugin-gentleman configure --dry-run
+npx plugin-gentleman configure --config ./tui.json --mode auto
+```
+
+Manual models must use `provider/model` format, for example `google/gemini-2.5-flash`. Empty `--model ""` clears the explicit model.
 
 ---
 
@@ -187,7 +222,7 @@ Both are fully configurable and can be hidden.
 
 ## Configuration
 
-All options are configured via plugin tuple syntax in `~/.config/opencode/opencode.json`.
+Options can be configured with the CLI companion or via plugin tuple syntax in OpenCode config files.
 
 **Quick tip:** To disable animations, add `{ "animations": false }` to your plugin config (see examples below).
 
@@ -382,6 +417,7 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
 - `ui/` — UI components and sidebar effects/helpers
 - `runtime/` — runtime helpers, model resolver/client seam, and personality layer
 - `utils/` — detection, animation, MCP, and message utilities
+- `bin/` — `plugin-gentleman` CLI setup companion
 - `ascii-frames.ts` — all ASCII art frames, eye positions, and color definitions
 - `phrases.ts` — motivational phrases library for busy states
 - `config.ts` — configuration parsing helpers and type definitions
