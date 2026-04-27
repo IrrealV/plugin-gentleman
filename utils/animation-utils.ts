@@ -48,7 +48,7 @@ const monocleLensRuntimeGlyph: Record<Exclude<MustachiVisualState, "idle">, stri
 const monocleLensFileTypeGlyph = {
   typescript: "◈",
   javascript: "●",
-  json: "◫",
+  json: "◆",
   markdown: "◇",
   styles: "◧",
   markup: "◌",
@@ -87,6 +87,12 @@ const monocleLensOverlayAnchorsByPupilIndex: Record<number, MonocleLensOverlayAn
 const replaceCharAt = (line: string, index: number, value: string): string => {
   if (index < 0 || index >= line.length) return line
   return `${line.slice(0, index)}${value}${line.slice(index + 1)}`
+}
+
+const normalizeOverlayGlyph = (glyph: string): string => {
+  const normalized = glyph.trim()
+  if (!normalized) return "*"
+  return Array.from(normalized)[0] ?? "*"
 }
 
 const isOverlayAnchorUsable = (frame: string[], anchor: MonocleLensOverlayAnchor | undefined): anchor is MonocleLensOverlayAnchor => {
@@ -139,21 +145,23 @@ const getRuntimeModelToken = (runtimeContext: RuntimeContext | unknown): string 
   if (!runtime) return ""
 
   const runtimeModel = isRecord(runtime.model) ? runtime.model : undefined
-  const rootModel = isRecord((runtimeContext as RuntimeRecord).model) ? (runtimeContext as RuntimeRecord).model : undefined
+  const rootRecord = isRecord(runtimeContext) ? runtimeContext : undefined
+  const rootModel = isRecord(rootRecord?.model) ? rootRecord.model : undefined
   return normalizeToken(
     runtimeModel?.id ??
       runtimeModel?.name ??
       rootModel?.id ??
       rootModel?.name ??
       runtime.model ??
-      (runtimeContext as RuntimeRecord).model,
+      rootRecord?.model,
   )
 }
 
 const getRuntimeProviderToken = (runtimeContext: RuntimeContext | unknown): string => {
   const runtime = getRuntimeRecord(runtimeContext)
   if (!runtime) return ""
-  return normalizeToken(runtime.provider ?? (runtimeContext as RuntimeRecord).provider)
+  const rootRecord = isRecord(runtimeContext) ? runtimeContext : undefined
+  return normalizeToken(runtime.provider ?? rootRecord?.provider)
 }
 
 const hasMcpSignal = (items: ReadonlyArray<McpItem> | undefined): boolean => {
@@ -278,10 +286,11 @@ export const applyMonocleLensOverlay = (
   try {
     if (!overlay?.glyph) return frame
     const anchor = input?.anchor ?? resolveMonocleLensOverlayAnchor(frame, input?.pupilIndex)
+    const glyph = normalizeOverlayGlyph(overlay.glyph)
 
     return frame.map((line, idx) => {
       if (idx !== anchor.lineIndex) return line
-      return replaceCharAt(line, anchor.columnIndex, overlay.glyph)
+      return replaceCharAt(line, anchor.columnIndex, glyph)
     })
   } catch {
     return frame

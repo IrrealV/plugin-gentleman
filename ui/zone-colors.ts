@@ -4,6 +4,47 @@ import type { SemanticZone } from "../types.ts"
 
 export type ThemeColor = NonNullable<TuiThemeCurrent["text"]>
 
+const sidebarMustachiZoneColors = {
+  eyes: "#F5F5F5",
+  eyeFill: "#F5F5F5",
+  eyeShadow: "#8A6F7D",
+  monocleLens: "#F5F5F5",
+  monocle: "#FF69B4",
+  mustache: "#FF69B4",
+} as const
+
+export function getSidebarMustachiZoneBackgroundColor(zone: SemanticZone | string): string | undefined {
+  switch (zone) {
+    case "eyeFill":
+      return sidebarMustachiZoneColors.eyeFill
+    case "monocleLens":
+      return sidebarMustachiZoneColors.monocleLens
+    default:
+      return undefined
+  }
+}
+
+export function getSidebarMustachiZoneColor(zone: SemanticZone | string, theme?: TuiThemeCurrent): string | ThemeColor {
+  switch (zone) {
+    case "eyes":
+      return sidebarMustachiZoneColors.eyes
+    case "eyeFill":
+      return sidebarMustachiZoneColors.eyeFill
+    case "eyeShadow":
+      return sidebarMustachiZoneColors.eyeShadow
+    case "monocleLens":
+      return sidebarMustachiZoneColors.monocleLens
+    case "monocle":
+      return sidebarMustachiZoneColors.monocle
+    case "eyeOverlay":
+      return sidebarMustachiZoneColors.monocle
+    case "mustache":
+      return sidebarMustachiZoneColors.mustache
+    default:
+      return getZoneColor(zone, theme)
+  }
+}
+
 export function getZoneColor(zone: SemanticZone | string, theme?: TuiThemeCurrent): string | ThemeColor {
   switch (zone) {
     case "monocle":

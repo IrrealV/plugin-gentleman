@@ -1,7 +1,6 @@
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
 import type { Cfg } from "../../config.ts"
 import type { LspItem, Message, ModifiedFileItem, ProviderInfo, RuntimeContext } from "../../types.ts"
-import type { MustachiModelClient } from "../../runtime/model-client.ts"
 
 export type SidebarMustachiProps = {
   theme: TuiThemeCurrent
@@ -15,7 +14,6 @@ export type SidebarMustachiProps = {
   lsp?: ReadonlyArray<LspItem> | (() => ReadonlyArray<LspItem> | undefined)
   mcpData?: unknown | (() => unknown)
   runtimeContext?: RuntimeContext | (() => RuntimeContext | undefined)
-  personalityModelClient?: MustachiModelClient
   contextLimit?: number | (() => number | undefined)
   contextLimitEstimated?: boolean | (() => boolean | undefined)
   costBudgetUsd?: number | (() => number | undefined)

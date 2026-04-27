@@ -1,11 +1,11 @@
 /** @jsxImportSource @opentui/solid */
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
 import { mustachiMustacheOnly } from "../ascii-frames.ts"
-import { getZoneColor } from "./zone-colors.ts"
+import { getSidebarMustachiZoneColor } from "./zone-colors.ts"
 
 // Home logo: Mustache-only (simple and prominent) flat tone
 export const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
-  const mustacheTone = getZoneColor("mustache", props.theme)
+  const mustacheTone = getSidebarMustachiZoneColor("mustache", props.theme)
   const mutedBranding = props.theme?.textMuted ?? "#888888"
   const primaryBranding = props.theme?.primary ?? "#FFFFFF"
 

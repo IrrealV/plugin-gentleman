@@ -49,9 +49,10 @@ const canonicalModel = (value: unknown): string => {
   return value.trim()
 }
 
-const oneOf = (value: unknown, allowed: readonly string[], fallback: string) => {
+const oneOf = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T => {
   const normalized = str(value, fallback)
-  return allowed.includes(normalized.toLowerCase()) ? (normalized.toLowerCase() as typeof allowed[number]) : fallback
+  const candidate = normalized.toLowerCase() as T
+  return allowed.includes(candidate) ? candidate : fallback
 }
 
 export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
@@ -66,7 +67,7 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     animations: bool(opts?.animations, true),
     cost_budget_usd: num(opts?.cost_budget_usd, 1),
     personality_enabled: bool(opts?.personality_enabled, true),
-    personality_mode: oneOf(opts?.personality_mode, ["auto", "off"], "auto"),
+    personality_mode: oneOf(opts?.personality_mode, ["auto", "off"] as const, "auto"),
     personality_model: canonicalModel(opts?.personality_model),
   }
 }

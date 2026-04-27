@@ -1,5 +1,5 @@
 import type { RuntimeContext } from "../types.ts"
-import type { ProviderCollection } from "./plugin-api.ts"
+import { getProviderArray, type ProviderCollection } from "./plugin-api.ts"
 import { SAFE_MODEL_PATTERNS, SMALL_MODEL_ALIASES, type ModelResolutionHint } from "./constants.ts"
 
 export type MustachiModelClass = "offline" | "preferred" | "generic"
@@ -54,17 +54,21 @@ const isSmallModelAlias = (value: string): boolean => {
 
 const MODEL_ID_SEGMENT = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/
 
+const isModelPath = (value: string): boolean => {
+  return value.split("/").every(segment => MODEL_ID_SEGMENT.test(segment))
+}
+
 const parseConfiguredModel = (preferredModel?: string): { provider: string; model: string } | undefined => {
   const normalized = normalize(preferredModel)
   if (!normalized) return
 
   const parts = normalized.split("/")
-  if (parts.length !== 2) return
+  if (parts.length < 2) return
 
   const provider = parts[0]?.trim() ?? ""
-  const model = parts[1]?.trim() ?? ""
+  const model = parts.slice(1).join("/").trim()
   if (!provider || !model) return
-  if (!MODEL_ID_SEGMENT.test(provider) || !MODEL_ID_SEGMENT.test(model)) return
+  if (!MODEL_ID_SEGMENT.test(provider) || !isModelPath(model)) return
 
   return {
     provider,
@@ -107,9 +111,7 @@ export const resolveRuntimeModel = (runtimeContext?: RuntimeContext): MustachiMo
 }
 
 export const resolveAllowlistedModel = (providers?: ProviderCollection): MustachiModelResolution => {
-  const providerList = Array.isArray(providers)
-    ? providers
-    : Object.values(providers ?? {}).filter((provider): provider is Record<string, unknown> => typeof provider === "object" && provider !== null)
+  const providerList = getProviderArray(providers)
 
   for (const provider of providerList) {
     const providerId = typeof provider?.id === "string" ? normalize(provider.id) : ""
@@ -134,13 +136,19 @@ export const resolveAllowlistedModel = (providers?: ProviderCollection): Mustach
 
 export const resolveModelResolution = (input: MustachiModelResolutionInput): MustachiModelResolution => {
   const configured = resolveConfiguredModel(input.preferredModel)
-  if (configured.class === "preferred" && configured.model) return configured
+  if (configured.class === "preferred" && configured.model) {
+    return configured
+  }
 
   const runtime = resolveRuntimeModel(input.runtimeContext)
-  if (runtime.class === "preferred" && runtime.model) return runtime
+  if (runtime.class === "preferred" && runtime.model) {
+    return runtime
+  }
 
   const allowlisted = resolveAllowlistedModel(input.providers)
-  if (allowlisted.class !== "offline" && allowlisted.model) return allowlisted
+  if (allowlisted.class !== "offline" && allowlisted.model) {
+    return allowlisted
+  }
 
   return { class: "offline", source: "unknown", hint: "unavailable" }
 }

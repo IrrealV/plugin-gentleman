@@ -63,28 +63,9 @@ OpenCode will install npm plugins automatically on startup.
 
 ---
 
-### Configure Mustachi from the CLI
+### Mustachi phrases
 
-If you installed the package, you can update Mustachi personality settings without editing JSON manually:
-
-```bash
-npx plugin-gentleman setup --mode auto --model google/gemini-2.5-flash
-npx plugin-gentleman configure --disable
-npx plugin-gentleman configure --model ""
-```
-
-By default the CLI updates `~/.config/opencode/tui.json`, finds the existing `plugin-gentleman` entry whether it is a string or tuple, preserves existing options, and only changes `personality_enabled`, `personality_mode`, and `personality_model`.
-
-Useful flags:
-
-```bash
-npx plugin-gentleman configure --enable
-npx plugin-gentleman configure --mode off
-npx plugin-gentleman configure --dry-run
-npx plugin-gentleman configure --config ./tui.json --mode auto
-```
-
-Manual models must use `provider/model` format, for example `google/gemini-2.5-flash`. Empty `--model ""` clears the explicit model.
+Mustachi currently uses the bundled local phrase library only. Experimental model-generated phrases, the **Mascot Model** command, and the CLI model configuration flow are disabled for stability.
 
 ---
 
@@ -222,7 +203,7 @@ Both are fully configurable and can be hidden.
 
 ## Configuration
 
-Options can be configured with the CLI companion or via plugin tuple syntax in OpenCode config files.
+Options can be configured via plugin tuple syntax in OpenCode config files.
 
 **Quick tip:** To disable animations, add `{ "animations": false }` to your plugin config (see examples below).
 
@@ -243,9 +224,7 @@ Options can be configured with the CLI companion or via plugin tuple syntax in O
         "show_providers": true,
         "show_metrics": true,
         "animations": true,
-        "personality_enabled": true,
-        "personality_mode": "auto",
-        "personality_model": ""
+        "personality_enabled": true
       }
     ]
   ]
@@ -265,19 +244,11 @@ Options can be configured with the CLI companion or via plugin tuple syntax in O
 | `show_metrics` | boolean | `true` | Show session token/cost metrics in the sidebar |
 | `animations` | boolean | `true` | Enable Mustachi animations (eyes, busy state) |
 | `personality_enabled` | boolean | `true` | Enable personality phrases and tongue expression |
-| `personality_mode` | string (one of: `"auto"`, `"off"`) | `"auto"` | `"auto"`: allow runtime-aware dynamic generation when safe; `"off"`: force fallback phrases only |
-| `personality_model` | string | `""` | Optional preferred model in canonical `provider/model` format (for example `google/gemini-2.5-flash`) |
 
 ### Personality settings
 
-- `personality_enabled` (default `true`): turns Mustachi personality UX (tongue + phrases) on/off.
-- `personality_mode` (default `"auto"`):
-  - `auto`: allow runtime-aware dynamic generation when a safe seam is available.
-  - `off`: keep fallback phrase behavior only.
-- `personality_model`: optional explicit model preference in `provider/model` format.
-  - Valid example: `google/gemini-2.5-flash`
-  - Invalid examples (graceful fallback): `gemini-2.5-flash`, `google/gemini/flash`, `google:`
-  - If invalid, Mustachi does **not** guess; it falls back through `small_model` → allowlisted free model → offline phrases.
+- `personality_enabled` (default `true`): turns Mustachi personality UX (tongue + local phrases) on/off.
+- Legacy `personality_mode` and `personality_model` values may still exist in older configs, but model-generated speech is disabled and these values are ignored by the phrase renderer.
 
 ### Examples
 
@@ -370,7 +341,7 @@ The plugin is structured as a multi-file module for maintainability and clarity:
 - **`phrases.ts`** — Library of 36+ motivational phrases (Rioplatense Spanish style) shown during expressive states.
 - **`config.ts`** — Configuration parsing with type-safe defaults and validation helpers.
 - **`utils/`** — OS/provider/stack detection, animation utilities, MCP helpers, and message/cost formatting.
-- **`runtime/`** — Plugin API helpers, busy detection, model resolution/client seam, Mustachi context summarization, and personality layer orchestration.
+- **`runtime/`** — Plugin API helpers, busy detection, model resolution compatibility helpers, Mustachi context summarization, and personality layer orchestration.
 
 ---
 
@@ -417,7 +388,7 @@ If you copy `.ts` files to `~/.config/opencode/plugins/` (system plugin):
 - `ui/` — UI components and sidebar effects/helpers
 - `runtime/` — runtime helpers, model resolver/client seam, and personality layer
 - `utils/` — detection, animation, MCP, and message utilities
-- `bin/` — `plugin-gentleman` CLI setup companion
+- `bin/` — disabled `plugin-gentleman` CLI compatibility entrypoint
 - `ascii-frames.ts` — all ASCII art frames, eye positions, and color definitions
 - `phrases.ts` — motivational phrases library for busy states
 - `config.ts` — configuration parsing helpers and type definitions

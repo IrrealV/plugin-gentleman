@@ -32,9 +32,10 @@ export const getOSName = (): string => {
         try {
           const osRelease = readFileSync("/etc/os-release", "utf8")
           const match = osRelease.match(/^NAME="?([^"\n]+)"?/m)
-          if (match) {
-            cachedOSName = match[1]
-            return cachedOSName
+          const osName = match?.[1]
+          if (osName) {
+            cachedOSName = osName
+            return osName
           }
         } catch {
         }
@@ -48,7 +49,7 @@ export const getOSName = (): string => {
         return cachedOSName
       default:
         cachedOSName = platform
-        return cachedOSName
+        return platform
     }
   } catch {
     cachedOSName = "Unknown"
