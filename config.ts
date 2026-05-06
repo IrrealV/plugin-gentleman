@@ -8,12 +8,31 @@ export type Cfg = {
   show_os: boolean
   show_providers: boolean
   show_metrics: boolean
+  show_face: boolean
+  show_branch: boolean
+  show_tokens: boolean
+  show_cost: boolean
+  show_mcp: boolean
   animations: boolean
   cost_budget_usd: number
   personality_enabled: boolean
   personality_mode: "auto" | "off"
   // Canonical format: "provider/model" (for example "google/gemini-2.5-flash")
   personality_model: string
+}
+
+export type ResolvedMetricVisibility = {
+  branch: boolean
+  tokens: boolean
+  cost: boolean
+  mcp: boolean
+  usesGranularOverride: boolean
+}
+
+export type ResolvedSidebarConfig = {
+  showFace: boolean
+  showBranch: boolean
+  metrics: ResolvedMetricVisibility
 }
 
 const rec = (value: unknown) => {
@@ -64,10 +83,51 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     show_os: bool(opts?.show_os, true),
     show_providers: bool(opts?.show_providers, true),
     show_metrics: bool(opts?.show_metrics, true),
+    show_face: bool(opts?.show_face, true),
+    show_branch: bool(opts?.show_branch, true),
+    show_tokens: bool(opts?.show_tokens, true),
+    show_cost: bool(opts?.show_cost, true),
+    show_mcp: bool(opts?.show_mcp, true),
     animations: bool(opts?.animations, true),
     cost_budget_usd: num(opts?.cost_budget_usd, 1),
     personality_enabled: bool(opts?.personality_enabled, true),
     personality_mode: oneOf(opts?.personality_mode, ["auto", "off"] as const, "auto"),
     personality_model: canonicalModel(opts?.personality_model),
+  }
+}
+
+export const resolveSidebarConfig = (
+  parsed: Cfg,
+  rawOpts?: Record<string, unknown>,
+): ResolvedSidebarConfig => {
+  const showFace = parsed.show_face
+
+  const granularKeys = ["show_branch", "show_tokens", "show_cost", "show_mcp"] as const
+  const hasAnyGranular = granularKeys.some(key => typeof rawOpts?.[key] === "boolean")
+
+  if (hasAnyGranular) {
+    return {
+      showFace,
+      showBranch: parsed.show_branch,
+      metrics: {
+        branch: parsed.show_branch,
+        tokens: parsed.show_tokens,
+        cost: parsed.show_cost,
+        mcp: parsed.show_mcp,
+        usesGranularOverride: true,
+      },
+    }
+  }
+
+  return {
+    showFace,
+    showBranch: parsed.show_metrics,
+    metrics: {
+      branch: parsed.show_metrics,
+      tokens: parsed.show_metrics,
+      cost: parsed.show_metrics,
+      mcp: parsed.show_metrics,
+      usesGranularOverride: false,
+    },
   }
 }

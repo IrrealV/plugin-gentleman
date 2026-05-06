@@ -1,10 +1,21 @@
 import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
-import type { Cfg } from "../../config.ts"
+import type { Cfg, ResolvedSidebarConfig } from "../../config.ts"
 import type { LspItem, Message, ModifiedFileItem, ProviderInfo, RuntimeContext } from "../../types.ts"
+import type { MonocleLensOverlay, MustachiVisualState } from "../../utils/animation-utils.ts"
+
+export type FaceBuilderInput = {
+  pupilIndex: number
+  blinkFrame: number
+  visualState: MustachiVisualState
+  monocleLensOverlay: MonocleLensOverlay | undefined
+  shouldShowExpression: boolean
+  tongueFrame: number
+}
 
 export type SidebarMustachiProps = {
   theme: TuiThemeCurrent
   config: Cfg
+  resolvedSidebar: ResolvedSidebarConfig
   isBusy?: boolean
   providers?: ReadonlyArray<ProviderInfo>
   sessionId?: string | (() => string | undefined)

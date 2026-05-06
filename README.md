@@ -223,6 +223,11 @@ Options can be configured via plugin tuple syntax in OpenCode config files.
         "show_os": true,
         "show_providers": true,
         "show_metrics": true,
+        "show_face": true,
+        "show_branch": true,
+        "show_tokens": true,
+        "show_cost": true,
+        "show_mcp": true,
         "animations": true,
         "personality_enabled": true
       }
@@ -241,7 +246,12 @@ Options can be configured via plugin tuple syntax in OpenCode config files.
 | `show_detected` | boolean | `true` | Show the "Detected" environment info line |
 | `show_os` | boolean | `true` | Show detected operating system name |
 | `show_providers` | boolean | `true` | Show detected LLM providers |
-| `show_metrics` | boolean | `true` | Show session token/cost metrics in the sidebar |
+| `show_metrics` | boolean | `true` | Legacy toggle: show/hide all sidebar metrics (branch, tokens, cost, MCP) |
+| `show_face` | boolean | `true` | Show Mustachi face in the sidebar |
+| `show_branch` | boolean | `true` | Show current branch name below the face |
+| `show_tokens` | boolean | `true` | Show token usage bar |
+| `show_cost` | boolean | `true` | Show cost bar |
+| `show_mcp` | boolean | `true` | Show MCP status row |
 | `animations` | boolean | `true` | Enable Mustachi animations (eyes, busy state) |
 | `personality_enabled` | boolean | `true` | Enable personality phrases and tongue expression |
 
@@ -302,6 +312,36 @@ Shows only Mustachi and OpenCode branding, no OS/provider info.
   ]
 }
 ```
+
+**Granular Metric Visibility:**
+
+Instead of the legacy `show_metrics` toggle, you can control each sidebar section independently.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    [
+      "plugin-gentleman",
+      {
+        "show_face": true,
+        "show_branch": false,
+        "show_tokens": true,
+        "show_cost": false,
+        "show_mcp": true
+      }
+    ]
+  ]
+}
+```
+
+### Legacy Precedence
+
+`show_metrics` is preserved for backward compatibility. The precedence rules are:
+
+- If **any** granular flag (`show_branch`, `show_tokens`, `show_cost`, `show_mcp`) is explicitly provided, all metric sections resolve from their individual granular values, and `show_metrics` is ignored for those sections.
+- If **no** granular flags are provided, `show_metrics` controls branch, tokens, cost, and MCP as a single group.
+- Missing granular flags default to `true` when granular mode is active.
 
 ---
 
