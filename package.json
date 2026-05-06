@@ -14,6 +14,7 @@
         "enabled": true,
         "theme": "gentleman",
         "set_theme": false,
+        "sidebar_mini_mascot": false,
         "show_detected": true,
         "show_os": true,
         "show_providers": true,
@@ -41,7 +42,8 @@
     "mcp-utils.ts",
     "animation-utils.ts",
     "progress-components.tsx",
-    "gentleman.json"
+    "gentleman.json",
+    "soft.json"
   ],
   "engines": {
     "opencode": ">=1.3.13"
