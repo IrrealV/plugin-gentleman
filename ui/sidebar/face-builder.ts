@@ -1,11 +1,4 @@
-import {
-  pupilPositionFrames,
-  eyeSquinted,
-  eyeBlinkHalf,
-  eyeBlinkClosed,
-  mustachiMustacheSection,
-  tongueFrames,
-} from "../../ascii-frames.ts"
+import { resolveSidebarFaceFrames, type SidebarFaceVariant } from "./face-frames.ts"
 import {
   applyMonocleLensOverlay,
   resolveMonocleLensOverlayAnchor,
@@ -98,6 +91,7 @@ const buildEyeSegments = (
 }
 
 export const buildMustachiFace = (input: {
+  variant: SidebarFaceVariant
   pupilIndex: number
   blinkFrame: number
   visualState: MustachiVisualState
@@ -107,14 +101,16 @@ export const buildMustachiFace = (input: {
 }): FaceLine[] => {
   const lines: FaceLine[] = []
 
-  let eyeFrame = pupilPositionFrames[input.pupilIndex]
-  if (input.visualState !== "idle") eyeFrame = eyeSquinted
+  const frames = resolveSidebarFaceFrames(input.variant)
+
+  let eyeFrame = [...frames.pupilPositionFrames[input.pupilIndex]]
+  if (input.visualState !== "idle") eyeFrame = [...frames.eyeSquinted]
   let monocleLensOverlayAnchor: MonocleLensOverlayAnchor | undefined
 
   if (input.blinkFrame === 1) {
-    eyeFrame = eyeBlinkHalf
+    eyeFrame = [...frames.eyeBlinkHalf]
   } else if (input.blinkFrame === 2) {
-    eyeFrame = eyeBlinkClosed
+    eyeFrame = [...frames.eyeBlinkClosed]
   } else {
     monocleLensOverlayAnchor = resolveMonocleLensOverlayAnchor(eyeFrame, input.pupilIndex)
     eyeFrame = applyMonocleLensOverlay(eyeFrame, input.monocleLensOverlay, {
@@ -134,12 +130,12 @@ export const buildMustachiFace = (input: {
     })
   })
 
-  mustachiMustacheSection.forEach(line => {
+  frames.mustacheSection.forEach(line => {
     lines.push({ content: normalizeSidebarFaceLine(line), zone: "mustache" })
   })
 
   if (input.shouldShowExpression && input.tongueFrame > 0) {
-    const tongueLines = tongueFrames[input.tongueFrame]
+    const tongueLines = frames.tongueFrames[input.tongueFrame]
     tongueLines.forEach(line => {
       lines.push({ content: line, zone: "tongue" })
     })

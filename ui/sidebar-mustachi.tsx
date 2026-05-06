@@ -178,6 +178,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   return (
     <box flexDirection="column" alignItems="center">
       {buildMustachiFace({
+        variant: props.config.sidebar_mini_mascot ? "mini" : "full",
         pupilIndex: pupilIndex(),
         blinkFrame: blinkFrame(),
         visualState: visualState(),
