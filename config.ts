@@ -1,15 +1,8 @@
 // Configuration types and parsing helpers
 
-export const THEMES = {
-  gentleman: "gentleman",
-  soft: "soft",
-} as const
-
-export type ThemeName = (typeof THEMES)[keyof typeof THEMES]
-
 export interface Cfg {
   enabled: boolean
-  theme: ThemeName
+  theme: string
   set_theme: boolean
   sidebar_mini_mascot: boolean
   show_detected: boolean
@@ -63,12 +56,10 @@ const oneOf = <T extends string>(value: unknown, allowed: readonly T[], fallback
   return allowed.includes(candidate) ? candidate : fallback
 }
 
-const THEMES_ARRAY = Object.values(THEMES) as readonly ThemeName[]
-
 export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
   return {
     enabled: bool(opts?.enabled, true),
-    theme: oneOf(opts?.theme, THEMES_ARRAY, THEMES.gentleman),
+    theme: pick(opts?.theme, "gentleman"),
     set_theme: bool(opts?.set_theme, false),
     sidebar_mini_mascot: bool(opts?.sidebar_mini_mascot, false),
     show_detected: bool(opts?.show_detected, true),

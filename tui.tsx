@@ -36,22 +36,11 @@ const tui: TuiPlugin = async (rawApi: unknown, options: unknown) => {
   void (async () => {
     try {
       await api.theme.install("./gentleman.json")
+      if (value().set_theme) {
+        api.theme.set(value().theme)
+      }
     } catch (error) {
-      console.warn("[plugin-gentleman] Theme install failed (gentleman):", error)
-    }
-
-    try {
-      await api.theme.install("./soft.json")
-    } catch (error) {
-      console.warn("[plugin-gentleman] Theme install failed (soft):", error)
-    }
-
-    if (!value().set_theme) return
-
-    try {
-      api.theme.set(value().theme)
-    } catch (error) {
-      console.warn("[plugin-gentleman] Theme set failed:", error)
+      console.error("[plugin-gentleman] Theme setup failed:", error)
     }
   })()
 

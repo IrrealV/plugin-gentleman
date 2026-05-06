@@ -42,8 +42,7 @@
     "mcp-utils.ts",
     "animation-utils.ts",
     "progress-components.tsx",
-    "gentleman.json",
-    "soft.json"
+    "gentleman.json"
   ],
   "engines": {
     "opencode": ">=1.3.13"
