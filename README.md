@@ -224,10 +224,6 @@ Options can be configured via plugin tuple syntax in OpenCode config files.
         "show_providers": true,
         "show_metrics": true,
         "show_face": true,
-        "show_branch": true,
-        "show_tokens": true,
-        "show_cost": true,
-        "show_mcp": true,
         "animations": true,
         "personality_enabled": true
       }
@@ -235,6 +231,8 @@ Options can be configured via plugin tuple syntax in OpenCode config files.
   ]
 }
 ```
+
+> Granular override keys (`show_branch`, `show_tokens`, `show_cost`, `show_mcp`) are intentionally absent from `package.json` exported defaults. If OpenCode merged those defaults into the options object, the runtime could not distinguish between a default `true` and a genuinely explicit user override — breaking the precedence system below.
 
 ### Available Options
 
@@ -246,7 +244,7 @@ Options can be configured via plugin tuple syntax in OpenCode config files.
 | `show_detected` | boolean | `true` | Show the "Detected" environment info line |
 | `show_os` | boolean | `true` | Show detected operating system name |
 | `show_providers` | boolean | `true` | Show detected LLM providers |
-| `show_metrics` | boolean | `true` | Legacy toggle: show/hide all sidebar metrics (branch, tokens, cost, MCP) |
+| `show_metrics` | boolean | `true` | Legacy master switch: show/hide tokens, cost, and MCP as a group. Does NOT affect branch visibility (legacy guarantee). |
 | `show_face` | boolean | `true` | Show Mustachi face in the sidebar |
 | `show_branch` | boolean | `true` | Show current branch name below the face |
 | `show_tokens` | boolean | `true` | Show token usage bar |
@@ -335,13 +333,27 @@ Instead of the legacy `show_metrics` toggle, you can control each sidebar sectio
 }
 ```
 
-### Legacy Precedence
+### Visibility Precedence (show_metrics + granular flags)
 
-`show_metrics` is preserved for backward compatibility. The precedence rules are:
+`show_metrics` is preserved for backward compatibility and NEVER controlled branch visibility. The precedence rules (highest to lowest):
 
-- If **any** granular flag (`show_branch`, `show_tokens`, `show_cost`, `show_mcp`) is explicitly provided, all metric sections resolve from their individual granular values, and `show_metrics` is ignored for those sections.
-- If **no** granular flags are provided, `show_metrics` controls branch, tokens, cost, and MCP as a single group.
-- Missing granular flags default to `true` when granular mode is active.
+1. **Explicit granular flag** — if the user set `show_branch`, `show_tokens`, `show_cost`, or `show_mcp`, that specific flag overrides everything below.
+2. **`show_metrics` (legacy)** — if explicitly set, it acts as the base for tokens, cost, and MCP together. Does **not** affect branch.
+3. **Package defaults** — all flags default to `true` (set in code, not in `package.json` exports).
+
+**Why granular keys are excluded from `package.json` exports:** OpenCode may merge a plugin's `package.json` `exports["*"].config` defaults into the options object at runtime. If granular keys like `show_branch` or `show_tokens` were in those exports, every options object would include them — making it impossible for the plugin to distinguish between a merged default (`true`) and a genuinely explicit user override. The key-presence check (`"show_branch" in rawOpts`) would always match, breaking the precedence system. The fix is to keep only non-granular defaults in `package.json` and rely on `cfg()` defaults in code.
+
+**Examples:**
+
+| User Config | Branch | Tokens | Cost | MCP |
+|---|---|---|---|---|
+| *(none)* | visible | visible | visible | visible |
+| `{ show_metrics: false }` | visible | hidden | hidden | hidden |
+| `{ show_branch: false }` | hidden | visible | visible | visible |
+| `{ show_metrics: false, show_tokens: true }` | visible | visible | hidden | hidden |
+| `{ show_branch: false, show_tokens: false }` | hidden | hidden | visible | visible |
+
+**How granular vs legacy mode is detected:** The plugin checks whether each granular key is physically present in the raw options object (`"show_branch" in rawOpts`). If present, that value is used as an explicit override. If absent, it falls back to `show_metrics` (for tokens/cost/mcp) or the hardcoded default `true` (for branch). This only works correctly when the options object does NOT contain injected defaults for those keys — which is why granular keys are deliberately excluded from `package.json` `exports.config`. To use granular overrides, add the exact key(s) you want to control to your plugin config tuple.
 
 ---
 

@@ -102,32 +102,63 @@ export const resolveSidebarConfig = (
 ): ResolvedSidebarConfig => {
   const showFace = parsed.show_face
 
-  const granularKeys = ["show_branch", "show_tokens", "show_cost", "show_mcp"] as const
-  const hasAnyGranular = granularKeys.some(key => typeof rawOpts?.[key] === "boolean")
+  // ---- Precedence rules (highest to lowest) ----
+  //
+  // 1. Explicit granular flag (show_branch / show_tokens / show_cost / show_mcp)
+  //    — detected by key presence in rawOpts.
+  //
+  // 2. show_metrics (legacy master switch)
+  //    — applied to tokens, cost, and mcp as a group.
+  //    — NEVER controlled branch (branch was always independent in legacy).
+  //
+  // 3. Package defaults (cfg() in config.ts, all true).
+  //
+  // NOTE on compatibility: Granular keys (show_branch, show_tokens, show_cost,
+  // show_mcp) are deliberately excluded from package.json exports.config. If
+  // OpenCode merges those exported defaults into the options object, the runtime
+  // would see "show_branch" in rawOpts as true even when the user never set it.
+  // That breaks legacy behavior: { show_metrics: false } would not hide tokens
+  // because the merged show_tokens:true default would be misclassified as an
+  // explicit override. By keeping only non-granular keys in package.json, we
+  // preserve the ability to detect genuinely explicit user overrides.
+  //
+  // Mixed example — user sets { show_metrics: false, show_branch: true }:
+  //   → branch visible (explicit override), tokens/cost/mcp hidden (show_metrics).
+  // -------------------------------------------------
 
-  if (hasAnyGranular) {
-    return {
-      showFace,
-      showBranch: parsed.show_branch,
-      metrics: {
-        branch: parsed.show_branch,
-        tokens: parsed.show_tokens,
-        cost: parsed.show_cost,
-        mcp: parsed.show_mcp,
-        usesGranularOverride: true,
-      },
-    }
-  }
+  const hasExplicitShowMetrics = rawOpts ? "show_metrics" in rawOpts : false
+  const metricsDefault = hasExplicitShowMetrics ? parsed.show_metrics : true
+
+  // Detect explicit granular overrides by key presence, not value type.
+  // This prevents granular mode from activating solely because package.json
+  // exports default true values for these keys.
+  const explicitBranch = rawOpts && "show_branch" in rawOpts ? parsed.show_branch : null
+  const explicitTokens = rawOpts && "show_tokens" in rawOpts ? parsed.show_tokens : null
+  const explicitCost   = rawOpts && "show_cost"   in rawOpts ? parsed.show_cost   : null
+  const explicitMcp    = rawOpts && "show_mcp"    in rawOpts ? parsed.show_mcp    : null
+
+  // Branch: legacy behavior — always independent of show_metrics.
+  // If not explicitly set, branch defaults to visible (true).
+  const showBranch = explicitBranch ?? true
+  const showTokens = explicitTokens ?? metricsDefault
+  const showCost   = explicitCost   ?? metricsDefault
+  const showMcp    = explicitMcp    ?? metricsDefault
+
+  const usesGranularOverride =
+    explicitBranch !== null ||
+    explicitTokens !== null ||
+    explicitCost   !== null ||
+    explicitMcp    !== null
 
   return {
     showFace,
-    showBranch: parsed.show_metrics,
+    showBranch,
     metrics: {
-      branch: parsed.show_metrics,
-      tokens: parsed.show_metrics,
-      cost: parsed.show_metrics,
-      mcp: parsed.show_metrics,
-      usesGranularOverride: false,
+      branch: showBranch,
+      tokens: showTokens,
+      cost: showCost,
+      mcp: showMcp,
+      usesGranularOverride,
     },
   }
 }
