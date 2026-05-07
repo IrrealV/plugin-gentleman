@@ -1,17 +1,22 @@
 /** @jsxImportSource @opentui/solid */
-import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui"
-import { mustachiMustacheOnly } from "../ascii-frames.ts"
-import { getSidebarMustachiZoneColor } from "./zone-colors.ts"
+import type { TuiThemeCurrent } from "@opencode-ai/plugin/tui";
+import {
+  mustachiMustacheOnly,
+  mustachiMustacheOnlyVintache,
+} from "../ascii-frames.ts";
+import { getSidebarMustachiZoneColor } from "./zone-colors.ts";
 
 // Home logo: Mustache-only (simple and prominent) flat tone
 export const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
-  const mustacheTone = getSidebarMustachiZoneColor("mustache", props.theme)
-  const mutedBranding = props.theme?.textMuted ?? "#888888"
-  const primaryBranding = props.theme?.primary ?? "#FFFFFF"
+  const mustacheTone = getSidebarMustachiZoneColor("mustache", props.theme);
+  const mutedBranding = props.theme?.textMuted ?? "#888888";
+  const primaryBranding = props.theme?.primary ?? "#FFFFFF";
 
   return (
     <box flexDirection="column" alignItems="center">
-      {mustachiMustacheOnly.map(line => <text fg={mustacheTone}>{line.padEnd(61, " ")}</text>)}
+      {mustachiMustacheOnlyVintache.map((line) => (
+        <text fg={mustacheTone}>{line.padEnd(61, " ")}</text>
+      ))}
 
       <box flexDirection="row" gap={0} marginTop={1}>
         <text fg={mutedBranding}>╭ </text>
@@ -21,5 +26,5 @@ export const HomeLogo = (props: { theme: TuiThemeCurrent }) => {
 
       <text> </text>
     </box>
-  )
-}
+  );
+};

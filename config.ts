@@ -4,7 +4,6 @@ export interface Cfg {
   enabled: boolean
   theme: string
   set_theme: boolean
-  sidebar_mini_mascot: boolean
   show_detected: boolean
   show_os: boolean
   show_providers: boolean
@@ -61,7 +60,6 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     enabled: bool(opts?.enabled, true),
     theme: pick(opts?.theme, "gentleman"),
     set_theme: bool(opts?.set_theme, false),
-    sidebar_mini_mascot: bool(opts?.sidebar_mini_mascot, false),
     show_detected: bool(opts?.show_detected, true),
     show_os: bool(opts?.show_os, true),
     show_providers: bool(opts?.show_providers, true),
