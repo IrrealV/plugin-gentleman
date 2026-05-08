@@ -113,7 +113,7 @@ export const mustachiMustacheSection = [
   "   █████████   █████████   ",  // 27 chars - perfectly symmetric
 ]
 
-// Tongue animation frames (progressive) - compact design
+// Tongue animation frames (progressive)
 export const tongueFrames = [
   [],  // no tongue
   ["            ███", "             █"],  // tongue out

@@ -8,7 +8,12 @@ import { getLatestAssistantModelContext } from "../runtime/plugin-api.ts"
 import { zoneColors } from "../ascii-frames.ts"
 import { McpStatus, ProgressBar } from "../progress-components.tsx"
 import { getSidebarMustachiZoneBackgroundColor, getSidebarMustachiZoneColor } from "./zone-colors.ts"
-import { buildMustachiFace, normalizeSidebarFaceLine, SIDEBAR_FACE_WIDTH, type FaceSegment } from "./sidebar/face-builder.ts"
+import {
+  buildMustachiFace,
+  normalizeSidebarFaceLine,
+  SIDEBAR_FACE_WIDTH,
+  type FaceSegment,
+} from "./sidebar/face-builder.ts"
 import {
   setupBlinkEffect,
   setupExpressiveCycleEffect,
@@ -20,7 +25,7 @@ import { resolveProp, type SidebarMustachiProps } from "./sidebar/shared.ts"
 
 type SegmentedCell = { content: string; zone: FaceSegment["zone"] | "unknown" }
 
-const buildSegmentedCells = (segments: FaceSegment[], width = SIDEBAR_FACE_WIDTH): SegmentedCell[] => {
+const buildSegmentedCells = (segments: FaceSegment[], width: number): SegmentedCell[] => {
   const cells: SegmentedCell[] = []
 
   segments.forEach(segment => {
@@ -97,8 +102,8 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   const shouldShowExpression = createMemo(() => resolvedPersonalityEnabled() && (!!props.isBusy || expressiveCycle()))
 
-  const monocleLensOverlay = createMemo(() =>
-    resolveMonocleLensOverlay({
+  const monocleLensOverlay = createMemo(() => {
+    return resolveMonocleLensOverlay({
       modifiedFiles: resolvedModifiedFiles(),
       mcpSignalEnabled: true,
       mcpItems: visibleMcpItems(),
@@ -107,8 +112,8 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
       runtimeContext: resolveProp(props.runtimeContext),
       detectedStack: detectedStack(),
       runtimeHint: runtimeHint(),
-    }),
-  )
+    })
+  })
 
   setupPupilMovementEffect({
     animations: () => !!props.config.animations,
@@ -177,56 +182,55 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   return (
     <box flexDirection="column" alignItems="center">
-      {buildMustachiFace({
-        pupilIndex: pupilIndex(),
-        blinkFrame: blinkFrame(),
-        visualState: visualState(),
-        monocleLensOverlay: monocleLensOverlay(),
-        shouldShowExpression: shouldShowExpression(),
-        tongueFrame: tongueFrame(),
-      }).map(({ content, zone, segments }) => {
-        if (segments?.length) {
-          const cells = buildSegmentedCells(segments)
+      {props.resolvedSidebar.showFace &&
+        buildMustachiFace({
+          pupilIndex: pupilIndex(),
+          blinkFrame: blinkFrame(),
+          visualState: visualState(),
+          monocleLensOverlay: monocleLensOverlay(),
+          shouldShowExpression: shouldShowExpression(),
+          tongueFrame: tongueFrame(),
+        }).map(({ content, zone, segments }) => {
+          if (segments?.length) {
+            const cells = buildSegmentedCells(segments, SIDEBAR_FACE_WIDTH)
 
-          return (
-            <box flexDirection="row" gap={0} width={SIDEBAR_FACE_WIDTH}>
-              {cells.map(cell => (
-                <text fg={getSidebarMustachiZoneColor(cell.zone, props.theme)} bg={getSegmentedCellBackgroundColor(cell)}>{cell.content}</text>
-              ))}
-            </box>
-          )
-        }
+            return (
+              <box flexDirection="row" gap={0} width={SIDEBAR_FACE_WIDTH}>
+                {cells.map(cell => (
+                  <text fg={getSidebarMustachiZoneColor(cell.zone, props.theme)} bg={getSegmentedCellBackgroundColor(cell)}>{cell.content}</text>
+                ))}
+              </box>
+            )
+          }
 
-        const color = getSidebarMustachiZoneColor(zone, props.theme)
-        const paddedLine = normalizeSidebarFaceLine(content)
-        return <text fg={color}>{paddedLine}</text>
-      })}
+          const color = getSidebarMustachiZoneColor(zone, props.theme)
+          const paddedLine = normalizeSidebarFaceLine(content)
+          return <text fg={color}>{paddedLine}</text>
+        })}
 
-      {shouldShowExpression() && busyPhrase() && (
+      {props.resolvedSidebar.showFace && shouldShowExpression() && busyPhrase() && (
         <text fg={props.theme?.warning ?? zoneColors.tongue}>{busyPhrase()}</text>
       )}
 
-      {branchLabel() && (
+      {props.resolvedSidebar.showBranch && branchLabel() && (
         <box flexDirection="row" alignItems="center" gap={1} marginTop={1}>
           <text fg={props.theme?.accent ?? zoneColors.monocle}>⎇</text>
           <text fg={props.theme?.text ?? zoneColors.mustache}>{branchLabel()}</text>
         </box>
       )}
 
-      {props.config.show_metrics && (
-        <>
-          <ProgressBar
-            theme={props.theme}
-            totalTokens={contextTokens()}
-            totalCost={totalCost()}
-            contextLimit={resolvedContextLimit()}
-            contextLimitEstimated={resolvedContextLimitEstimated()}
-            costBudgetUsd={resolvedCostBudgetUsd() ?? 1}
-          />
+      <ProgressBar
+        theme={props.theme}
+        totalTokens={contextTokens()}
+        totalCost={totalCost()}
+        contextLimit={resolvedContextLimit()}
+        contextLimitEstimated={resolvedContextLimitEstimated()}
+        costBudgetUsd={resolvedCostBudgetUsd() ?? 1}
+        showTokens={props.resolvedSidebar.metrics.tokens}
+        showCost={props.resolvedSidebar.metrics.cost}
+      />
 
-          <McpStatus theme={props.theme} items={visibleMcpItems()} />
-        </>
-      )}
+      {props.resolvedSidebar.metrics.mcp && <McpStatus theme={props.theme} items={visibleMcpItems()} />}
 
       <text> </text>
     </box>

@@ -18,6 +18,7 @@
         "show_os": true,
         "show_providers": true,
         "show_metrics": true,
+        "show_face": true,
         "animations": true,
         "personality_enabled": true,
         "personality_mode": "auto",

@@ -8,12 +8,31 @@ export type Cfg = {
   show_os: boolean
   show_providers: boolean
   show_metrics: boolean
+  show_face: boolean
+  show_branch: boolean
+  show_tokens: boolean
+  show_cost: boolean
+  show_mcp: boolean
   animations: boolean
   cost_budget_usd: number
   personality_enabled: boolean
   personality_mode: "auto" | "off"
   // Canonical format: "provider/model" (for example "google/gemini-2.5-flash")
   personality_model: string
+}
+
+export type ResolvedMetricVisibility = {
+  branch: boolean
+  tokens: boolean
+  cost: boolean
+  mcp: boolean
+  usesGranularOverride: boolean
+}
+
+export type ResolvedSidebarConfig = {
+  showFace: boolean
+  showBranch: boolean
+  metrics: ResolvedMetricVisibility
 }
 
 const rec = (value: unknown) => {
@@ -64,10 +83,82 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     show_os: bool(opts?.show_os, true),
     show_providers: bool(opts?.show_providers, true),
     show_metrics: bool(opts?.show_metrics, true),
+    show_face: bool(opts?.show_face, true),
+    show_branch: bool(opts?.show_branch, true),
+    show_tokens: bool(opts?.show_tokens, true),
+    show_cost: bool(opts?.show_cost, true),
+    show_mcp: bool(opts?.show_mcp, true),
     animations: bool(opts?.animations, true),
     cost_budget_usd: num(opts?.cost_budget_usd, 1),
     personality_enabled: bool(opts?.personality_enabled, true),
     personality_mode: oneOf(opts?.personality_mode, ["auto", "off"] as const, "auto"),
     personality_model: canonicalModel(opts?.personality_model),
+  }
+}
+
+export const resolveSidebarConfig = (
+  parsed: Cfg,
+  rawOpts?: Record<string, unknown>,
+): ResolvedSidebarConfig => {
+  const showFace = parsed.show_face
+
+  // ---- Precedence rules (highest to lowest) ----
+  //
+  // 1. Explicit granular flag (show_branch / show_tokens / show_cost / show_mcp)
+  //    — detected by key presence in rawOpts.
+  //
+  // 2. show_metrics (legacy master switch)
+  //    — applied to tokens, cost, and mcp as a group.
+  //    — NEVER controlled branch (branch was always independent in legacy).
+  //
+  // 3. Package defaults (cfg() in config.ts, all true).
+  //
+  // NOTE on compatibility: Granular keys (show_branch, show_tokens, show_cost,
+  // show_mcp) are deliberately excluded from package.json exports.config. If
+  // OpenCode merges those exported defaults into the options object, the runtime
+  // would see "show_branch" in rawOpts as true even when the user never set it.
+  // That breaks legacy behavior: { show_metrics: false } would not hide tokens
+  // because the merged show_tokens:true default would be misclassified as an
+  // explicit override. By keeping only non-granular keys in package.json, we
+  // preserve the ability to detect genuinely explicit user overrides.
+  //
+  // Mixed example — user sets { show_metrics: false, show_branch: true }:
+  //   → branch visible (explicit override), tokens/cost/mcp hidden (show_metrics).
+  // -------------------------------------------------
+
+  const hasExplicitShowMetrics = rawOpts ? "show_metrics" in rawOpts : false
+  const metricsDefault = hasExplicitShowMetrics ? parsed.show_metrics : true
+
+  // Detect explicit granular overrides by key presence, not value type.
+  // This prevents granular mode from activating solely because package.json
+  // exports default true values for these keys.
+  const explicitBranch = rawOpts && "show_branch" in rawOpts ? parsed.show_branch : null
+  const explicitTokens = rawOpts && "show_tokens" in rawOpts ? parsed.show_tokens : null
+  const explicitCost   = rawOpts && "show_cost"   in rawOpts ? parsed.show_cost   : null
+  const explicitMcp    = rawOpts && "show_mcp"    in rawOpts ? parsed.show_mcp    : null
+
+  // Branch: legacy behavior — always independent of show_metrics.
+  // If not explicitly set, branch defaults to visible (true).
+  const showBranch = explicitBranch ?? true
+  const showTokens = explicitTokens ?? metricsDefault
+  const showCost   = explicitCost   ?? metricsDefault
+  const showMcp    = explicitMcp    ?? metricsDefault
+
+  const usesGranularOverride =
+    explicitBranch !== null ||
+    explicitTokens !== null ||
+    explicitCost   !== null ||
+    explicitMcp    !== null
+
+  return {
+    showFace,
+    showBranch,
+    metrics: {
+      branch: showBranch,
+      tokens: showTokens,
+      cost: showCost,
+      mcp: showMcp,
+      usesGranularOverride,
+    },
   }
 }
