@@ -184,6 +184,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
         monocleLensOverlay: monocleLensOverlay(),
         shouldShowExpression: shouldShowExpression(),
         tongueFrame: tongueFrame(),
+        faceStyle: props.config.face_style,
       }).map(({ content, zone, segments }) => {
         if (segments?.length) {
           const cells = buildSegmentedCells(segments)

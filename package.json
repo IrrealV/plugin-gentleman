@@ -22,7 +22,9 @@
         "personality_enabled": true,
         "personality_mode": "auto",
         "personality_model": "",
-        "cost_budget_usd": 1
+        "cost_budget_usd": 1,
+        "logo_style": "vintage",
+        "face_style": "full"
       }
     }
   },

@@ -5,6 +5,20 @@ import {
   eyeBlinkClosed,
   mustachiMustacheSection,
   tongueFrames,
+  // Mini frames
+  eyeNeutralCenterMini,
+  eyeNeutralUpMini,
+  eyeNeutralDownMini,
+  eyeNeutralLeftMini,
+  eyeNeutralRightMini,
+  eyeNeutralUpLeftMini,
+  eyeNeutralUpRightMini,
+  eyeNeutralDownLeftMini,
+  eyeNeutralDownRightMini,
+  eyeSquintedMini,
+  eyeBlinkHalfMini,
+  eyeBlinkClosedMini,
+  mustachiMustacheSectionMini,
 } from "../../ascii-frames.ts"
 import {
   applyMonocleLensOverlay,
@@ -97,6 +111,18 @@ const buildEyeSegments = (
   return compactSegments(segments)
 }
 
+const miniPupilPositionFrames = [
+  eyeNeutralCenterMini,
+  eyeNeutralUpMini,
+  eyeNeutralDownMini,
+  eyeNeutralLeftMini,
+  eyeNeutralRightMini,
+  eyeNeutralUpLeftMini,
+  eyeNeutralUpRightMini,
+  eyeNeutralDownLeftMini,
+  eyeNeutralDownRightMini,
+]
+
 export const buildMustachiFace = (input: {
   pupilIndex: number
   blinkFrame: number
@@ -104,17 +130,21 @@ export const buildMustachiFace = (input: {
   monocleLensOverlay: MonocleLensOverlay | undefined
   shouldShowExpression: boolean
   tongueFrame: number
+  faceStyle?: "mini" | "full"
 }): FaceLine[] => {
   const lines: FaceLine[] = []
 
-  let eyeFrame = pupilPositionFrames[input.pupilIndex]
-  if (input.visualState !== "idle") eyeFrame = eyeSquinted
+  const isMini = input.faceStyle === "mini"
+  const frames = isMini ? miniPupilPositionFrames : pupilPositionFrames
+
+  let eyeFrame = frames[input.pupilIndex]
+  if (input.visualState !== "idle") eyeFrame = isMini ? eyeSquintedMini : eyeSquinted
   let monocleLensOverlayAnchor: MonocleLensOverlayAnchor | undefined
 
   if (input.blinkFrame === 1) {
-    eyeFrame = eyeBlinkHalf
+    eyeFrame = isMini ? eyeBlinkHalfMini : eyeBlinkHalf
   } else if (input.blinkFrame === 2) {
-    eyeFrame = eyeBlinkClosed
+    eyeFrame = isMini ? eyeBlinkClosedMini : eyeBlinkClosed
   } else {
     monocleLensOverlayAnchor = resolveMonocleLensOverlayAnchor(eyeFrame, input.pupilIndex)
     eyeFrame = applyMonocleLensOverlay(eyeFrame, input.monocleLensOverlay, {
@@ -134,7 +164,8 @@ export const buildMustachiFace = (input: {
     })
   })
 
-  mustachiMustacheSection.forEach(line => {
+  const mustacheSection = isMini ? mustachiMustacheSectionMini : mustachiMustacheSection
+  mustacheSection.forEach(line => {
     lines.push({ content: normalizeSidebarFaceLine(line), zone: "mustache" })
   })
 
