@@ -55,6 +55,7 @@ export const ProgressBar = (props: {
   costBudgetUsd: number
   showTokens?: boolean
   showCost?: boolean
+  hasPriorContent?: boolean
 }) => {
   const safeLimit = Math.max(0, toNumber(props.contextLimit))
   const hasContextLimit = safeLimit > 0
@@ -74,7 +75,7 @@ export const ProgressBar = (props: {
   if (!showTokens && !showCost) return null
 
   return (
-    <box flexDirection="column" marginTop={1}>
+    <box flexDirection="column" marginTop={props.hasPriorContent ? 1 : 0}>
       {showTokens && (
         <MetricBar
           theme={props.theme}
@@ -101,11 +102,11 @@ export const ProgressBar = (props: {
   )
 }
 
-export const McpStatus = (props: { theme?: TuiThemeCurrent; items: McpItem[] }) => {
+export const McpStatus = (props: { theme?: TuiThemeCurrent; items: McpItem[]; marginTop?: number }) => {
   if (!props.items.length) return null
 
   return (
-    <box flexDirection="row" alignItems="center" gap={1} marginTop={1} flexWrap="wrap">
+    <box flexDirection="row" alignItems="center" gap={1} marginTop={props.marginTop ?? 1} flexWrap="wrap">
       <text fg={props.theme?.textMuted ?? zoneColors.mustache}>MCP</text>
       {props.items.map(item => {
         return <text fg={getMcpStatusColor(item.status, props.theme)}>{item.name}</text>

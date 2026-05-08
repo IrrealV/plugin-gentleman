@@ -339,9 +339,9 @@ Instead of the legacy `show_metrics` toggle, you can control each sidebar sectio
 
 1. **Explicit granular flag** — if the user set `show_branch`, `show_tokens`, `show_cost`, or `show_mcp`, that specific flag overrides everything below.
 2. **`show_metrics` (legacy)** — if explicitly set, it acts as the base for tokens, cost, and MCP together. Does **not** affect branch.
-3. **Package defaults** — all flags default to `true` (set in code, not in `package.json` exports).
+3. **Package defaults** — visibility flags default to `true` in code. Only granular metric keys (`show_branch`, `show_tokens`, `show_cost`, `show_mcp`) are excluded from `package.json` exports; `show_face` remains exported with the rest of the non-granular defaults.
 
-**Why granular keys are excluded from `package.json` exports:** OpenCode may merge a plugin's `package.json` `exports["*"].config` defaults into the options object at runtime. If granular keys like `show_branch` or `show_tokens` were in those exports, every options object would include them — making it impossible for the plugin to distinguish between a merged default (`true`) and a genuinely explicit user override. The key-presence check (`"show_branch" in rawOpts`) would always match, breaking the precedence system. The fix is to keep only non-granular defaults in `package.json` and rely on `cfg()` defaults in code.
+**Why granular keys are excluded from `package.json` exports:** OpenCode may merge a plugin's `package.json` `exports["*"].config` defaults into the options object at runtime. If granular keys like `show_branch` or `show_tokens` were in those exports, every options object would include boolean defaults — making it impossible for the plugin to distinguish between a merged default (`true`) and a genuinely explicit user override. The raw boolean override check would always match, breaking the precedence system. The fix is to keep only non-granular defaults in `package.json` and rely on `cfg()` defaults in code.
 
 **Examples:**
 
@@ -353,7 +353,7 @@ Instead of the legacy `show_metrics` toggle, you can control each sidebar sectio
 | `{ show_metrics: false, show_tokens: true }` | visible | visible | hidden | hidden |
 | `{ show_branch: false, show_tokens: false }` | hidden | hidden | visible | visible |
 
-**How granular vs legacy mode is detected:** The plugin checks whether each granular key is physically present in the raw options object (`"show_branch" in rawOpts`). If present, that value is used as an explicit override. If absent, it falls back to `show_metrics` (for tokens/cost/mcp) or the hardcoded default `true` (for branch). This only works correctly when the options object does NOT contain injected defaults for those keys — which is why granular keys are deliberately excluded from `package.json` `exports.config`. To use granular overrides, add the exact key(s) you want to control to your plugin config tuple.
+**How granular vs legacy mode is detected:** The plugin checks whether each granular key is present in the raw options object with a boolean value. Boolean granular values are explicit overrides. Malformed values are treated as absent and fall back to `show_metrics` (for tokens/cost/mcp) or the hardcoded default `true` (for branch). This only works correctly when the options object does NOT contain injected defaults for those keys — which is why granular keys are deliberately excluded from `package.json` `exports.config`. To use granular overrides, add the exact boolean key(s) you want to control to your plugin config tuple.
 
 ---
 

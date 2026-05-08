@@ -80,6 +80,8 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   const resolvedSessionId = createMemo(() => resolveProp(props.sessionId))
   const resolvedPersonalityEnabled = createMemo(() => props.config.personality_enabled)
+  const shouldRenderFace = createMemo(() => props.resolvedSidebar.showFace)
+  const animationsEnabled = createMemo(() => shouldRenderFace() && !!props.config.animations)
   const runtimeHint = createMemo(() => getRuntimeVisualHint(resolveProp(props.runtimeContext)))
 
   const resolvedMcp = createMemo(() => resolveProp(props.mcpData))
@@ -89,7 +91,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   const visualState = createMemo<MustachiVisualState>(() => {
-    if (!resolvedPersonalityEnabled()) {
+    if (!shouldRenderFace() || !resolvedPersonalityEnabled()) {
       return "idle"
     }
 
@@ -100,7 +102,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
     })
   })
 
-  const shouldShowExpression = createMemo(() => resolvedPersonalityEnabled() && (!!props.isBusy || expressiveCycle()))
+  const shouldShowExpression = createMemo(() => shouldRenderFace() && resolvedPersonalityEnabled() && (!!props.isBusy || expressiveCycle()))
 
   const monocleLensOverlay = createMemo(() => {
     return resolveMonocleLensOverlay({
@@ -116,18 +118,18 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   setupPupilMovementEffect({
-    animations: () => !!props.config.animations,
+    animations: animationsEnabled,
     visualState,
     setPupilIndex,
   })
 
   setupBlinkEffect({
-    animations: () => !!props.config.animations,
+    animations: animationsEnabled,
     setBlinkFrame,
   })
 
   setupTongueAndPhraseEffect({
-    animations: () => !!props.config.animations,
+    animations: animationsEnabled,
     shouldShowExpression,
     detectedStack,
     setTongueFrame,
@@ -137,9 +139,9 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   })
 
   setupExpressiveCycleEffect({
-    animations: () => !!props.config.animations && resolvedPersonalityEnabled(),
-    isBusy: () => resolvedPersonalityEnabled() && !!props.isBusy,
-    runtimeHint: () => (resolvedPersonalityEnabled() ? runtimeHint() : undefined),
+    animations: () => animationsEnabled() && resolvedPersonalityEnabled(),
+    isBusy: () => shouldRenderFace() && resolvedPersonalityEnabled() && !!props.isBusy,
+    runtimeHint: () => (shouldRenderFace() && resolvedPersonalityEnabled() ? runtimeHint() : undefined),
     setExpressiveCycle,
   })
 
@@ -154,6 +156,14 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
   const resolvedCostBudgetUsd = createMemo(() => resolveProp(props.costBudgetUsd))
 
   const liveAssistantStats = createMemo(() => deriveLiveAssistantStats(resolvedMessages()))
+
+  const hasFaceContent = createMemo(() => shouldRenderFace())
+  const hasPhraseContent = createMemo(() => shouldRenderFace() && shouldShowExpression() && !!busyPhrase())
+  const hasBranchContent = createMemo(() => props.resolvedSidebar.showBranch && !!branchLabel())
+  const hasProgressContent = createMemo(() => props.resolvedSidebar.metrics.tokens || props.resolvedSidebar.metrics.cost)
+  const hasContentBeforeBranch = createMemo(() => hasFaceContent() || hasPhraseContent())
+  const hasContentBeforeProgress = createMemo(() => hasFaceContent() || hasPhraseContent() || hasBranchContent())
+  const hasContentBeforeMcp = createMemo(() => hasContentBeforeProgress() || hasProgressContent())
 
   createEffect(() => {
     const sessionId = resolvedSessionId()
@@ -182,7 +192,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   return (
     <box flexDirection="column" alignItems="center">
-      {props.resolvedSidebar.showFace &&
+      {shouldRenderFace() &&
         buildMustachiFace({
           pupilIndex: pupilIndex(),
           blinkFrame: blinkFrame(),
@@ -208,12 +218,12 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
           return <text fg={color}>{paddedLine}</text>
         })}
 
-      {props.resolvedSidebar.showFace && shouldShowExpression() && busyPhrase() && (
+      {hasPhraseContent() && (
         <text fg={props.theme?.warning ?? zoneColors.tongue}>{busyPhrase()}</text>
       )}
 
       {props.resolvedSidebar.showBranch && branchLabel() && (
-        <box flexDirection="row" alignItems="center" gap={1} marginTop={1}>
+        <box flexDirection="row" alignItems="center" gap={1} marginTop={hasContentBeforeBranch() ? 1 : 0}>
           <text fg={props.theme?.accent ?? zoneColors.monocle}>⎇</text>
           <text fg={props.theme?.text ?? zoneColors.mustache}>{branchLabel()}</text>
         </box>
@@ -228,11 +238,10 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
         costBudgetUsd={resolvedCostBudgetUsd() ?? 1}
         showTokens={props.resolvedSidebar.metrics.tokens}
         showCost={props.resolvedSidebar.metrics.cost}
+        hasPriorContent={hasContentBeforeProgress()}
       />
 
-      {props.resolvedSidebar.metrics.mcp && <McpStatus theme={props.theme} items={visibleMcpItems()} />}
-
-      <text> </text>
+      {props.resolvedSidebar.metrics.mcp && <McpStatus theme={props.theme} items={visibleMcpItems()} marginTop={hasContentBeforeMcp() ? 1 : 0} />}
     </box>
   )
 }

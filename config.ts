@@ -101,11 +101,15 @@ export const resolveSidebarConfig = (
   rawOpts?: Record<string, unknown>,
 ): ResolvedSidebarConfig => {
   const showFace = parsed.show_face
+  const rawBoolOverride = (key: keyof Cfg): boolean | null => {
+    if (!rawOpts || typeof rawOpts[key] !== "boolean") return null
+    return parsed[key] as boolean
+  }
 
   // ---- Precedence rules (highest to lowest) ----
   //
   // 1. Explicit granular flag (show_branch / show_tokens / show_cost / show_mcp)
-  //    — detected by key presence in rawOpts.
+  //    — detected only when the raw value is boolean.
   //
   // 2. show_metrics (legacy master switch)
   //    — applied to tokens, cost, and mcp as a group.
@@ -129,13 +133,13 @@ export const resolveSidebarConfig = (
   const hasExplicitShowMetrics = rawOpts ? "show_metrics" in rawOpts : false
   const metricsDefault = hasExplicitShowMetrics ? parsed.show_metrics : true
 
-  // Detect explicit granular overrides by key presence, not value type.
-  // This prevents granular mode from activating solely because package.json
-  // exports default true values for these keys.
-  const explicitBranch = rawOpts && "show_branch" in rawOpts ? parsed.show_branch : null
-  const explicitTokens = rawOpts && "show_tokens" in rawOpts ? parsed.show_tokens : null
-  const explicitCost   = rawOpts && "show_cost"   in rawOpts ? parsed.show_cost   : null
-  const explicitMcp    = rawOpts && "show_mcp"    in rawOpts ? parsed.show_mcp    : null
+  // Detect explicit granular overrides only from raw boolean values. Malformed
+  // values are treated as absent so cfg() fallback defaults cannot bypass the
+  // legacy show_metrics switch.
+  const explicitBranch = rawBoolOverride("show_branch")
+  const explicitTokens = rawBoolOverride("show_tokens")
+  const explicitCost   = rawBoolOverride("show_cost")
+  const explicitMcp    = rawBoolOverride("show_mcp")
 
   // Branch: legacy behavior — always independent of show_metrics.
   // If not explicitly set, branch defaults to visible (true).
