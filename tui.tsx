@@ -61,7 +61,7 @@ const tui: TuiPlugin = async (rawApi: unknown, options: unknown) => {
     mode: "replace",
     slots: {
       home_logo(ctx) {
-        return <HomeLogo theme={ctx.theme.current} />
+        return <HomeLogo theme={ctx.theme.current} logoStyle={value().logo_style} />
       },
       home_bottom(ctx) {
         return <DetectedEnv theme={ctx.theme.current} providers={getProviderArray(api.state.provider)} config={value()} />
