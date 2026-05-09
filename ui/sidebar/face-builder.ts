@@ -19,6 +19,10 @@ import {
   eyeBlinkHalfMini,
   eyeBlinkClosedMini,
   mustachiMustacheSectionMini,
+  // Reworked face
+  faceReworked,
+  type FaceRow,
+  type AnsiColor,
 } from "../../ascii-frames.ts"
 import {
   applyMonocleLensOverlay,
@@ -29,9 +33,11 @@ import {
 } from "../../utils/animation-utils.ts"
 import type { SemanticZone } from "../../types.ts"
 
+export type { FaceSection, FaceRow, AnsiColor } from "../../ascii-frames.ts"
+
 type FaceSegmentZone = SemanticZone | "eyeFill" | "eyeOverlay" | "eyeShadow" | "monocleLens"
 
-export type FaceSegment = { content: string; zone: FaceSegmentZone }
+export type FaceSegment = { content: string; zone: FaceSegmentZone; fg?: AnsiColor; bg?: AnsiColor }
 export type FaceLine = { content: string; zone: SemanticZone; segments?: FaceSegment[] }
 
 export const SIDEBAR_FACE_WIDTH = 27
@@ -130,8 +136,22 @@ export const buildMustachiFace = (input: {
   monocleLensOverlay: MonocleLensOverlay | undefined
   shouldShowExpression: boolean
   tongueFrame: number
-  faceStyle?: "mini" | "full"
+  faceStyle?: "mini" | "full" | "reworked"
 }): FaceLine[] => {
+  // Handle reworked face style
+  if (input.faceStyle === "reworked") {
+    return faceReworked.map(row => ({
+      content: row.map(s => s.text).join(""),
+      zone: "eyes" as SemanticZone, // Will be overridden by segments
+      segments: row.map(section => ({
+        content: section.text,
+        zone: section.fg === "white" ? "eyes" : "mustache",
+        fg: section.fg,
+        bg: section.bg,
+      })),
+    }))
+  }
+
   const lines: FaceLine[] = []
 
   const isMini = input.faceStyle === "mini"

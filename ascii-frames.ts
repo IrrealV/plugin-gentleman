@@ -89,14 +89,78 @@ export const eyeBlinkClosedMini = [
   "    ████████   ████████    ",
   "   ██████████ ██████████   ",
   "   ██████████ ██████████   ",
-  " █  ████████   ████████  █ ",
+  "    ████████   ████████    ",
 ];
 // Mustache section (all lines padded to 27 chars for alignment)
 export const mustachiMustacheSectionMini = [
-  " ███████           ███████ ", // 27 chars - perfectly symmetric
-  "████████████   ████████████", // 27 chars - perfectly symmetric
+  " █   ████████ ████████   █ ", // 27 chars - perfectly symmetric
   "  ███████████████████████  ", // 27 chars - perfectly symmetric
-  "    █████████ █████████    ", // 27 chars - perfectly symmetric
+  "   █████████████████████   ", // 27 chars - perfectly symmetric
+  "     ██████     ██████     ", // 27 chars - perfectly symmetric
+];
+
+// Face Reworked - Integrated eyes + mustache with per-section ANSI colors
+// Lines 0-3: eyes (white foreground, black background)
+// Lines 4-8: mustache with mixed section colors
+
+export type AnsiColor = "black" | "white" | "magenta";
+
+export interface FaceSection {
+  text: string;
+  fg: AnsiColor;
+  bg: AnsiColor;
+}
+
+export type FaceRow = FaceSection[];
+
+export const faceReworked: FaceRow[] = [
+  // Lines 0-3: eyes (white on black)
+  [{ text: "   ▄█████▄       ▄█████▄   ", fg: "white", bg: "black" }],
+  [{ text: " ▄███▀▀▀███▄   ▄█████████▄ ", fg: "white", bg: "black" }],
+  [{ text: " ███   █████   ███████████ ", fg: "white", bg: "black" }],
+  [{ text: " ███▄   ▄███   ███████████ ", fg: "white", bg: "black" }],
+  // Line 4: transition with mixed sections
+  [
+    { text: "  ", fg: "black", bg: "black" },
+    { text: "▀████", fg: "white", bg: "black" },
+    { text: "▄███▄", fg: "magenta", bg: "white" },
+    { text: "   ", fg: "black", bg: "black" },
+    { text: "▄███▄", fg: "magenta", bg: "white" },
+    { text: "████▀", fg: "white", bg: "black" },
+    { text: "  ", fg: "black", bg: "black" },
+  ],
+  // Line 5: mixed sections with per-char colors
+  [
+    { text: "▄", fg: "magenta", bg: "black" },
+    { text: "   ", fg: "black", bg: "black" },
+    { text: "▄", fg: "magenta", bg: "white" },
+    { text: "███████", fg: "magenta", bg: "black" },
+    { text: "▄", fg: "magenta", bg: "white" },
+    { text: "███████", fg: "magenta", bg: "black" },
+    { text: "▄", fg: "magenta", bg: "black" },
+    { text: "   ", fg: "black", bg: "black" },
+    { text: "▄", fg: "magenta", bg: "black" },
+  ],
+  // Lines 6-8: mustache (magenta on black) with black spaces
+  [
+    { text: "▀", fg: "magenta", bg: "black" },
+    { text: "█████████████████████████", fg: "magenta", bg: "black" },
+    { text: "▀", fg: "magenta", bg: "black" },
+  ],
+  [
+    { text: "  ", fg: "black", bg: "black" },
+    { text: "▀█████████▀", fg: "magenta", bg: "black" },
+    { text: " ", fg: "black", bg: "black" },
+    { text: "▀█████████▀", fg: "magenta", bg: "black" },
+    { text: "  ", fg: "black", bg: "black" },
+  ],
+  [
+    { text: "    ", fg: "black", bg: "black" },
+    { text: "▀▀███▀▀", fg: "magenta", bg: "black" },
+    { text: "     ", fg: "black", bg: "black" },
+    { text: "▀▀███▀▀", fg: "magenta", bg: "black" },
+    { text: "    ", fg: "black", bg: "black" },
+  ],
 ];
 
 export const eyeNeutralCenter = [

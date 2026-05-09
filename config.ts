@@ -15,7 +15,7 @@ export type Cfg = {
   // Canonical format: "provider/model" (for example "google/gemini-2.5-flash")
   personality_model: string
   logo_style: "default" | "vintage"
-  face_style: "mini" | "full"
+  face_style: "mini" | "full" | "reworked"
 }
 
 const rec = (value: unknown) => {
@@ -72,6 +72,6 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     personality_mode: oneOf(opts?.personality_mode, ["auto", "off"] as const, "auto"),
     personality_model: canonicalModel(opts?.personality_model),
     logo_style: oneOf(opts?.logo_style, ["default", "vintage"] as const, "vintage"),
-    face_style: oneOf(opts?.face_style, ["mini", "full"] as const, "full"),
+    face_style: oneOf(opts?.face_style, ["mini", "full", "reworked"] as const, "reworked"),
   }
 }
