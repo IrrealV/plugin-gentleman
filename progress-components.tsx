@@ -5,21 +5,17 @@ import { ellipsize, formatCost, formatTokens, getPct, toNumber } from "./utils/m
 import { getMcpStatusColor } from "./utils/mcp-utils.ts"
 import type { McpItem } from "./types.ts"
 
-export const ProgressBar = (props: {
+type ThemeColor = NonNullable<TuiThemeCurrent["text"]>
+
+export const MetricBar = (props: {
   theme?: TuiThemeCurrent
-  totalTokens: number
-  totalCost: number
-  contextLimit?: number
-  contextLimitEstimated?: boolean
-  costBudgetUsd: number
+  label: string
+  value: string
+  pct: number | undefined
+  pctText: string
+  color: string | ThemeColor
+  marginTop?: number
 }) => {
-  type ThemeColor = NonNullable<TuiThemeCurrent["text"]>
-  const safeLimit = Math.max(0, toNumber(props.contextLimit))
-  const hasContextLimit = safeLimit > 0
-  const safeBudget = Math.max(0, toNumber(props.costBudgetUsd))
-  const hasBudget = safeBudget > 0
-  const contextUsagePct = hasContextLimit ? getPct(props.totalTokens, safeLimit) : undefined
-  const costPct = hasBudget ? getPct(props.totalCost, safeBudget) : undefined
   const barWidth = 20
   const labelWidth = 11
   const valueWidth = 16
@@ -35,64 +31,82 @@ export const ProgressBar = (props: {
     return `${"█".repeat(filled)}${"▒".repeat(Math.max(0, barWidth - filled))}`
   }
 
-  const tokensLabel = "Tokens"
-  const costLabel = "Cost"
+  return (
+    <box flexDirection="column" marginTop={props.marginTop ?? 0}>
+      <box flexDirection="row">
+        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{props.label.padEnd(labelWidth, " ")}</text>
+        <text fg={props.theme?.text ?? "#FFFFFF"}>{fitCell(props.value, valueWidth)}</text>
+      </box>
+      <box flexDirection="row">
+        <text fg={props.color}>{buildBar(props.pct)}</text>
+        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{" "}</text>
+        <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{props.pctText.padStart(pctWidth, " ")}</text>
+      </box>
+    </box>
+  )
+}
+
+export const ProgressBar = (props: {
+  theme?: TuiThemeCurrent
+  totalTokens: number
+  totalCost: number
+  contextLimit?: number
+  contextLimitEstimated?: boolean
+  costBudgetUsd: number
+  showTokens?: boolean
+  showCost?: boolean
+  hasPriorContent?: boolean
+}) => {
+  const safeLimit = Math.max(0, toNumber(props.contextLimit))
+  const hasContextLimit = safeLimit > 0
+  const safeBudget = Math.max(0, toNumber(props.costBudgetUsd))
+  const hasBudget = safeBudget > 0
+  const contextUsagePct = hasContextLimit ? getPct(props.totalTokens, safeLimit) : undefined
+  const costPct = hasBudget ? getPct(props.totalCost, safeBudget) : undefined
 
   const pctPrefix = props.contextLimitEstimated ? "~" : ""
   const tokensPctText = hasContextLimit ? `${pctPrefix}${contextUsagePct}%` : "n/a"
   const costValue = hasBudget ? `${formatCost(props.totalCost)} / ${formatCost(safeBudget)}` : `${formatCost(props.totalCost)} / n/a`
   const costPctText = hasBudget ? `${costPct}%` : "n/a"
 
-  const renderMetric = (input: {
-    label: string
-    value: string
-    pct: number | undefined
-    pctText: string
-    color: string | ThemeColor
-    marginTop?: number
-  }) => {
-    return (
-      <box flexDirection="column" marginTop={input.marginTop ?? 0}>
-        <box flexDirection="row">
-          <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{input.label.padEnd(labelWidth, " ")}</text>
-          <text fg={props.theme?.text ?? "#FFFFFF"}>{fitCell(input.value, valueWidth)}</text>
-        </box>
-        <box flexDirection="row">
-          <text fg={input.color}>{buildBar(input.pct)}</text>
-          <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{" "}</text>
-          <text fg={props.theme?.textMuted ?? zoneColors.mustache}>{input.pctText.padStart(pctWidth, " ")}</text>
-        </box>
-      </box>
-    )
-  }
+  const showTokens = props.showTokens !== false
+  const showCost = props.showCost !== false
+
+  if (!showTokens && !showCost) return null
 
   return (
-    <box flexDirection="column" marginTop={1}>
-      {renderMetric({
-        label: tokensLabel,
-        value: formatTokens(props.totalTokens),
-        pct: contextUsagePct,
-        pctText: tokensPctText,
-        color: props.theme?.primary ?? zoneColors.eyes,
-      })}
+    <box flexDirection="column" marginTop={props.hasPriorContent ? 1 : 0}>
+      {showTokens && (
+        <MetricBar
+          theme={props.theme}
+          label="Tokens"
+          value={formatTokens(props.totalTokens)}
+          pct={contextUsagePct}
+          pctText={tokensPctText}
+          color={props.theme?.primary ?? zoneColors.eyes}
+        />
+      )}
 
-      {renderMetric({
-        label: costLabel,
-        value: costValue,
-        pct: costPct,
-        pctText: costPctText,
-        color: props.theme?.warning ?? zoneColors.tongue,
-        marginTop: 1,
-      })}
+      {showCost && (
+        <MetricBar
+          theme={props.theme}
+          label="Cost"
+          value={costValue}
+          pct={costPct}
+          pctText={costPctText}
+          color={props.theme?.warning ?? zoneColors.tongue}
+          marginTop={showTokens ? 1 : 0}
+        />
+      )}
     </box>
   )
 }
 
-export const McpStatus = (props: { theme?: TuiThemeCurrent; items: McpItem[] }) => {
+export const McpStatus = (props: { theme?: TuiThemeCurrent; items: McpItem[]; marginTop?: number }) => {
   if (!props.items.length) return null
 
   return (
-    <box flexDirection="row" alignItems="center" gap={1} marginTop={1} flexWrap="wrap">
+    <box flexDirection="row" alignItems="center" gap={1} marginTop={props.marginTop ?? 1} flexWrap="wrap">
       <text fg={props.theme?.textMuted ?? zoneColors.mustache}>MCP</text>
       {props.items.map(item => {
         return <text fg={getMcpStatusColor(item.status, props.theme)}>{item.name}</text>

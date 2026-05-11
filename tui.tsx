@@ -1,7 +1,7 @@
 /** @jsxImportSource @opentui/solid */
 import type { TuiPlugin, TuiPluginModule } from "@opencode-ai/plugin/tui"
 import { createSignal, createEffect } from "solid-js"
-import { cfg } from "./config.ts"
+import { cfg, resolveSidebarConfig } from "./config.ts"
 import { HomeLogo } from "./ui/home-logo.tsx"
 import { SidebarMustachi } from "./ui/sidebar-mustachi.tsx"
 import { DetectedEnv } from "./ui/detected-env.tsx"
@@ -19,8 +19,10 @@ const id = "gentleman"
 
 const tui: TuiPlugin = async (rawApi: unknown, options: unknown) => {
   const api = rawApi as unknown as PluginApiLike
-  const boot = cfg(rec(options))
+  const rawOpts = rec(options)
+  const boot = cfg(rawOpts)
   if (!boot.enabled) return
+  const resolvedSidebar = resolveSidebarConfig(boot, rawOpts as Record<string, unknown> | undefined)
 
   void (async () => {
     try {
@@ -93,6 +95,7 @@ const tui: TuiPlugin = async (rawApi: unknown, options: unknown) => {
           <SidebarMustachi
             theme={ctx.theme.current}
             config={value()}
+            resolvedSidebar={resolvedSidebar}
             isBusy={isSessionBusy(sessionStatus) || isBusy()}
             providers={getProviderArray(api.state.provider)}
             sessionId={() => sessionID}
