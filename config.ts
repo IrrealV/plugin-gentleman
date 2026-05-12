@@ -104,7 +104,7 @@ export const cfg = (opts: Record<string, unknown> | undefined): Cfg => {
     ),
     personality_model: canonicalModel(opts?.personality_model),
     logo_style: oneOf(opts?.logo_style, ["default", "vintage"] as const, "vintage"),
-    face_style: oneOf(opts?.face_style, ["mini", "full", "reworked"] as const, "reworked"),
+    face_style: oneOf(opts?.face_style, ["full", "reworked"] as const, "reworked"),
   }
 }
 

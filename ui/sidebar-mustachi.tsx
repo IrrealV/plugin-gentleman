@@ -193,39 +193,7 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
 
   return (
     <box flexDirection="column" alignItems="center">
-<<<<<<< main
-      {buildMustachiFace({
-        pupilIndex: pupilIndex(),
-        blinkFrame: blinkFrame(),
-        visualState: visualState(),
-        monocleLensOverlay: monocleLensOverlay(),
-        shouldShowExpression: shouldShowExpression(),
-        tongueFrame: tongueFrame(),
-        faceStyle: props.config.face_style,
-      }).map(({ content, zone, segments }) => {
-        if (segments?.length) {
-          const cells = buildSegmentedCells(segments)
-
-          return (
-            <box flexDirection="row" gap={0} width={SIDEBAR_FACE_WIDTH}>
-              {cells.map(cell => {
-                // Use ANSI colors if available (reworked face)
-                const fg = cell.fg ? getAnsiForegroundColor(cell.fg) : getSidebarMustachiZoneColor(cell.zone, props.theme)
-                const bg = cell.bg ? getAnsiBackgroundColor(cell.bg) : getSegmentedCellBackgroundColor(cell)
-                return <text fg={fg} bg={bg}>{cell.content}</text>
-              })}
-            </box>
-          )
-        }
-
-        const color = getSidebarMustachiZoneColor(zone, props.theme)
-        const paddedLine = normalizeSidebarFaceLine(content)
-        return <text fg={color}>{paddedLine}</text>
-      })}
-
-      {shouldShowExpression() && busyPhrase() && (
-=======
-      {shouldRenderFace() &&
+{shouldRenderFace() &&
         buildMustachiFace({
           pupilIndex: pupilIndex(),
           blinkFrame: blinkFrame(),
@@ -233,15 +201,19 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
           monocleLensOverlay: monocleLensOverlay(),
           shouldShowExpression: shouldShowExpression(),
           tongueFrame: tongueFrame(),
+          faceStyle: props.config.face_style,
         }).map(({ content, zone, segments }) => {
           if (segments?.length) {
             const cells = buildSegmentedCells(segments, SIDEBAR_FACE_WIDTH)
 
             return (
               <box flexDirection="row" gap={0} width={SIDEBAR_FACE_WIDTH}>
-                {cells.map(cell => (
-                  <text fg={getSidebarMustachiZoneColor(cell.zone, props.theme)} bg={getSegmentedCellBackgroundColor(cell)}>{cell.content}</text>
-                ))}
+                {cells.map(cell => {
+                  // Use ANSI colors if available (reworked face)
+                  const fg = cell.fg ? getAnsiForegroundColor(cell.fg) : getSidebarMustachiZoneColor(cell.zone, props.theme)
+                  const bg = cell.bg ? getAnsiBackgroundColor(cell.bg) : getSegmentedCellBackgroundColor(cell)
+                  return <text fg={fg} bg={bg}>{cell.content}</text>
+                })}
               </box>
             )
           }
@@ -252,7 +224,6 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
         })}
 
       {hasPhraseContent() && (
->>>>>>> main
         <text fg={props.theme?.warning ?? zoneColors.tongue}>{busyPhrase()}</text>
       )}
 

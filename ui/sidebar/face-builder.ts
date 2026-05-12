@@ -8,6 +8,9 @@ import {
 
   // Reworked face
   faceReworked,
+  faceReworkedEyes,
+  faceReworkedBlink,
+  faceReworkedMustache,
   type FaceRow,
   type AnsiColor,
 } from "../../ascii-frames.ts";
@@ -168,18 +171,68 @@ export const buildMustachiFace = (input: {
   tongueFrame: number;
   faceStyle?: "full" | "reworked";
 }): FaceLine[] => {
-  // Handle reworked face style
+  // Handle reworked face style with animation variants
   if (input.faceStyle === "reworked") {
-    return faceReworked.map((row) => ({
-      content: row.map((s) => s.text).join(""),
-      zone: "eyes" as SemanticZone, // Will be overridden by segments
-      segments: row.map((section) => ({
-        content: section.text,
-        zone: section.fg === "white" ? "eyes" : "mustache",
-        fg: section.fg,
-        bg: section.bg,
-      })),
-    }));
+    const lines: FaceLine[] = [];
+
+    // Determine which eye frame to use based on blink and visual state
+    let eyeFrames: FaceRow[];
+    let useSquint = input.visualState !== "idle" && input.blinkFrame === 0;
+
+    if (input.blinkFrame === 1) {
+      // Half blink
+      eyeFrames = faceReworkedBlink.half;
+    } else if (input.blinkFrame === 2) {
+      // Full blink
+      eyeFrames = faceReworkedBlink.closed;
+    } else if (useSquint) {
+      // Busy state - use center with squint logic (could add squint variants later)
+      eyeFrames = faceReworkedEyes.center;
+    } else {
+      // Normal - use pupil position
+      // pupilIndex maps to: 0=center, 1=up, 2=down, 3=left, 4=right, 5=upLeft, 6=upRight, 7=downLeft, 8=downRight
+      const pupilKeys = ["center", "up", "down", "left", "right", "upLeft", "upRight", "downLeft", "downRight"];
+      const pupilKey = pupilKeys[input.pupilIndex] || "center";
+      eyeFrames = faceReworkedEyes[pupilKey] || faceReworkedEyes.center;
+    }
+
+    // Add eye frames (first 5 lines: 4 eyes + 1 transition)
+    eyeFrames.forEach((row) => {
+      lines.push({
+        content: row.map((s) => s.text).join(""),
+        zone: "eyes" as SemanticZone,
+        segments: row.map((section) => ({
+          content: section.text,
+          zone: section.fg === "white" ? "eyes" : "mustache",
+          fg: section.fg,
+          bg: section.bg,
+        })),
+      });
+    });
+
+    // Add mustache (lines 5-8)
+    faceReworkedMustache.forEach((row) => {
+      lines.push({
+        content: row.map((s) => s.text).join(""),
+        zone: "mustache" as SemanticZone,
+        segments: row.map((section) => ({
+          content: section.text,
+          zone: section.fg === "white" ? "eyes" : "mustache",
+          fg: section.fg,
+          bg: section.bg,
+        })),
+      });
+    });
+
+    // Add tongue if expression is shown
+    if (input.shouldShowExpression && input.tongueFrame > 0) {
+      const tongueLines = tongueFrames[input.tongueFrame];
+      tongueLines.forEach((line) => {
+        lines.push({ content: line, zone: "tongue" });
+      });
+    }
+
+    return lines;
   }
 
   const lines: FaceLine[] = [];

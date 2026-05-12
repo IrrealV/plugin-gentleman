@@ -19,6 +19,7 @@ const ansiColorToHex: Record<AnsiColor, string> = {
   white: "#FFFFFF",
   magenta: "#FF4466",
   black: "#000000",
+  grey: "#888888",
 }
 
 // Resolve background color from ANSI color
