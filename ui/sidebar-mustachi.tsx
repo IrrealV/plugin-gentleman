@@ -22,15 +22,16 @@ import {
 } from "./sidebar/expression-effects.ts"
 import { deriveLiveAssistantStats } from "./sidebar/metrics.ts"
 import { resolveProp, type SidebarMustachiProps } from "./sidebar/shared.ts"
+import { getAnsiForegroundColor, getAnsiBackgroundColor } from "./zone-colors.ts"
 
-type SegmentedCell = { content: string; zone: FaceSegment["zone"] | "unknown" }
+type SegmentedCell = { content: string; zone: FaceSegment["zone"] | "unknown"; fg?: FaceSegment["fg"]; bg?: FaceSegment["bg"] }
 
 const buildSegmentedCells = (segments: FaceSegment[], width: number): SegmentedCell[] => {
   const cells: SegmentedCell[] = []
 
   segments.forEach(segment => {
     Array.from(segment.content).forEach(content => {
-      cells.push({ content, zone: segment.zone })
+      cells.push({ content, zone: segment.zone, fg: segment.fg, bg: segment.bg })
     })
   })
 
@@ -200,15 +201,19 @@ export const SidebarMustachi = (props: SidebarMustachiProps) => {
           monocleLensOverlay: monocleLensOverlay(),
           shouldShowExpression: shouldShowExpression(),
           tongueFrame: tongueFrame(),
+          faceStyle: props.config.face_style,
         }).map(({ content, zone, segments }) => {
           if (segments?.length) {
             const cells = buildSegmentedCells(segments, SIDEBAR_FACE_WIDTH)
 
             return (
               <box flexDirection="row" gap={0} width={SIDEBAR_FACE_WIDTH}>
-                {cells.map(cell => (
-                  <text fg={getSidebarMustachiZoneColor(cell.zone, props.theme)} bg={getSegmentedCellBackgroundColor(cell)}>{cell.content}</text>
-                ))}
+                {cells.map(cell => {
+                  // Use ANSI colors if available (reworked face)
+                  const fg = cell.fg ? getAnsiForegroundColor(cell.fg) : getSidebarMustachiZoneColor(cell.zone, props.theme)
+                  const bg = cell.bg ? getAnsiBackgroundColor(cell.bg) : getSegmentedCellBackgroundColor(cell)
+                  return <text fg={fg} bg={bg}>{cell.content}</text>
+                })}
               </box>
             )
           }
